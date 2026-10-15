@@ -1,0 +1,6 @@
+# Recommended Python: 3.11 (64-bit) on Windows 10/11
+openwakeword>=0.6.0,<0.8
+vosk>=0.3.45,<0.4
+sounddevice>=0.4.6,<0.6
+numpy>=1.26,<2.0
+pyttsx3>=2.90,<3.0

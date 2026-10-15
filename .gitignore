@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+models/
+*.wav
+*.mp3
+.env
+*.log
+backup_before_artemis*/

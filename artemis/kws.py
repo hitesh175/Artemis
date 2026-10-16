@@ -4,6 +4,7 @@ The model consumes microphone audio in memory and outputs only keyword matches.
 It is not speaker authentication and can still false-trigger on similar phrases.
 """
 from pathlib import Path
+from unittest import result
 import numpy as np
 
 from .config import PROJECT_ROOT, SAMPLE_RATE
@@ -45,7 +46,7 @@ class ArtemisKeywordDetector:
             **required,
             num_threads=num_threads,
             provider='cpu',
-            keywords_threshold=0.35,
+            keywords_threshold=0.25,
         )
         self.stream = self.spotter.create_stream()
 
@@ -61,6 +62,8 @@ class ArtemisKeywordDetector:
         while self.spotter.is_ready(self.stream):
             self.spotter.decode_stream(self.stream)
             result = self.spotter.get_result(self.stream)
+            if result:
+                print(f"[Keyword detector result] {result!r}")
             # Keyword spotter returns a phrase or an empty result, not a transcript.
             if result and 'HEY ARTEMIS' in str(result).upper().replace('_', ' '):
                 self.reset()

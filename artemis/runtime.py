@@ -8,20 +8,27 @@ from .commands import execute, interpret
 from .config import VOSK_PATH
 from .microphone import Microphone
 from .speech import listen_for_command
+from .speech_whisper import listen_for_whisper_command
 from .voice import Speaker
 from .wakeword import JarvisDetector, VoskPhraseDetector
 from .kws import ArtemisKeywordDetector
+from .oww_custom import ArtemisOpenWakeWordDetector
 
 
-def run(device=None, voice=True, wake_mode="kws", wake_debug=False, wake_test=False):
+def run(device=None, voice=True, wake_mode="oww", wake_debug=False, wake_test=False,
+        wake_threshold=0.50, stt="whisper", whisper_model_name="base.en", whisper_device="cpu"):
     if sys.platform != "win32":
         raise RuntimeError("ARTEMIS currently targets Windows 10/11 only.")
-    if not wake_test and not VOSK_PATH.is_dir():
+    if not wake_test and stt == "vosk" and not VOSK_PATH.is_dir():
         raise RuntimeError("Vosk model missing. Run: .venv\\Scripts\\python.exe setup_models.py")
 
     SetLogLevel(-1)
     vosk_model = None
-    if wake_mode == "kws":
+    if wake_mode == "oww":
+        print("Loading trained Hey Artemis openWakeWord model (offline)...")
+        detector = ArtemisOpenWakeWordDetector(threshold=wake_threshold)
+        wake_phrase = "Hey Artemis"
+    elif wake_mode == "kws":
         print("Loading local Artemis keyword spotter (no standby transcription)...")
         detector = ArtemisKeywordDetector()
         wake_phrase = "Hey Artemis"
@@ -36,13 +43,34 @@ def run(device=None, voice=True, wake_mode="kws", wake_debug=False, wake_test=Fa
         detector = JarvisDetector(debug=wake_debug)
         wake_phrase = "Hey Jarvis"
     else:
-        raise ValueError("wake_mode must be 'kws', 'vosk', or 'jarvis'")
+        raise ValueError("wake_mode must be 'oww', 'kws', 'vosk', or 'jarvis'")
     speaker = Speaker(enabled=voice and not wake_test)
-    # Preload speech recognition into memory for a fast command response, but
-    # never feed it standby microphone audio in 'kws' or 'jarvis' modes.
-    if not wake_test and vosk_model is None:
-        print("Preparing command recognizer (only used after wake activation)...")
-        vosk_model = VoskModel(str(VOSK_PATH))
+    # The ASR model stays loaded, but receives audio only AFTER a wake hit.
+    whisper_model = None
+    if not wake_test:
+        if stt == "whisper":
+            try:
+                from faster_whisper import WhisperModel
+            except ImportError as exc:
+                raise RuntimeError("faster-whisper missing; install with: python -m pip install faster-whisper") from exc
+            compute_type = "int8" if whisper_device == "cpu" else "float16"
+            print(f"Loading offline faster-whisper model ({whisper_model_name}, {whisper_device})...", flush=True)
+            try:
+                whisper_model = WhisperModel(whisper_model_name, device=whisper_device,
+                                             compute_type=compute_type, local_files_only=True)
+            except Exception as exc:
+                raise RuntimeError(
+                    "Could not load cached Whisper model. If missing, run: "
+                    ".venv\\Scripts\\python.exe main.py --prepare-whisper; "
+                    "for CUDA errors, try --whisper-device cpu. "
+                    f"Original error: {type(exc).__name__}: {exc}"
+                ) from exc
+        elif stt == "vosk":
+            if vosk_model is None:
+                print("Preparing Vosk command recognizer (only used after wake activation)...")
+                vosk_model = VoskModel(str(VOSK_PATH))
+        else:
+            raise ValueError("stt must be 'whisper' or 'vosk'")
 
     if wake_test:
         print(f"[Wake test] Say '{wake_phrase}', then pause. No commands execute.")
@@ -51,6 +79,7 @@ def run(device=None, voice=True, wake_mode="kws", wake_debug=False, wake_test=Fa
         print(f"ARTEMIS is listening offline. Say '{wake_phrase}', pause, then give a command.")
         print("Ctrl+C stops microphone listening; no audio is saved to files.")
     last_handled = 0.0
+    last_score_report = time.monotonic()
 
     with Microphone(device=device) as microphone:
         try:
@@ -59,6 +88,14 @@ def run(device=None, voice=True, wake_mode="kws", wake_debug=False, wake_test=Fa
                 if frame is None:
                     continue
                 hit = detector.process(frame)
+                # An optional confidence trace, not speech-to-text. Never saves audio.
+                if wake_debug and wake_mode == "oww":
+                    now = time.monotonic()
+                    if now - last_score_report >= 2.0:
+                        print(f"[Wake score] peak={detector.top_score:.3f} "
+                              f"threshold={wake_threshold:.2f}")
+                        detector.top_score = 0.0
+                        last_score_report = now
                 if hit is None:
                     continue
 
@@ -75,12 +112,11 @@ def run(device=None, voice=True, wake_mode="kws", wake_debug=False, wake_test=Fa
                     command_text = hit.command_tail
                 else:
                     print("[Listening for command...]")
-                    # Do not load large STT until after the wake phrase.
-                    if vosk_model is None:
-                        print("Loading command speech recognition...")
-                        vosk_model = VoskModel(str(VOSK_PATH))
                     microphone.flush()
-                    command_text = listen_for_command(microphone, vosk_model)
+                    if stt == "whisper":
+                        command_text = listen_for_whisper_command(microphone, whisper_model)
+                    else:
+                        command_text = listen_for_command(microphone, vosk_model)
 
                 if not command_text:
                     reply, should_exit = "I did not hear a command. Please try again.", False

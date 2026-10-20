@@ -9,6 +9,7 @@ from .config import VOSK_PATH
 from .microphone import Microphone
 from .speech import listen_for_command
 from .speech_whisper import listen_for_whisper_command
+from .streaming_command import RecentAudio, capture_whisper
 from .voice import Speaker
 from .wakeword import JarvisDetector, VoskPhraseDetector
 from .kws import ArtemisKeywordDetector
@@ -76,8 +77,9 @@ def run(device=None, voice=True, wake_mode="oww", wake_debug=False, wake_test=Fa
         print(f"[Wake test] Say '{wake_phrase}', then pause. No commands execute.")
         print("Standby is quiet; only confirmed keyword hits will print. Ctrl+C to quit.")
     else:
-        print(f"ARTEMIS is listening offline. Say '{wake_phrase}', pause, then give a command.")
+        print(f"ARTEMIS is listening offline. Say 'Hey Artemis, open Notepad' or speak after the wake phrase.")
         print("Ctrl+C stops microphone listening; no audio is saved to files.")
+    recent = RecentAudio()
     last_handled = 0.0
     last_score_report = time.monotonic()
 
@@ -87,6 +89,7 @@ def run(device=None, voice=True, wake_mode="oww", wake_debug=False, wake_test=Fa
                 frame = microphone.read(timeout=1.0)
                 if frame is None:
                     continue
+                recent.append(frame)
                 hit = detector.process(frame)
                 # An optional confidence trace, not speech-to-text. Never saves audio.
                 if wake_debug and wake_mode == "oww":
@@ -103,20 +106,23 @@ def run(device=None, voice=True, wake_mode="oww", wake_debug=False, wake_test=Fa
                 if wake_test:
                     print(f"[Wake test SUCCESS] Recognized '{wake_phrase}'.")
                     detector.reset()
+                    recent.clear()
                     continue
 
                 if time.monotonic() - last_handled < 2.0:
                     continue
-                print(f"[Wake detected] {wake_phrase}")
-                if hit.command_tail:
+                print(f"[Wake detected] {wake_phrase}", flush=True)
+                if stt == "whisper":
+                    print("[Listening for command... one sentence or pause-and-command]", flush=True)
+                    # Never flush here: it would throw away a command said in
+                    # the same breath as the wake phrase.
+                    command_text = capture_whisper(microphone, whisper_model, recent.snapshot())
+                elif hit.command_tail:
                     command_text = hit.command_tail
                 else:
-                    print("[Listening for command...]")
+                    print("[Listening for command...]", flush=True)
                     microphone.flush()
-                    if stt == "whisper":
-                        command_text = listen_for_whisper_command(microphone, whisper_model)
-                    else:
-                        command_text = listen_for_command(microphone, vosk_model)
+                    command_text = listen_for_command(microphone, vosk_model)
 
                 if not command_text:
                     reply, should_exit = "I did not hear a command. Please try again.", False
@@ -129,6 +135,7 @@ def run(device=None, voice=True, wake_mode="oww", wake_debug=False, wake_test=Fa
                 # from being interpreted as a new wake phrase.
                 microphone.flush()
                 detector.reset()
+                recent.clear()
                 last_handled = time.monotonic()
                 if should_exit:
                     break

@@ -1,0 +1,1 @@
+Extract to C:\Users\kanag\Desktop\Artemis (project root); replace artemis\artemis_app_resolver_723.py. Re-run existing test: .\.venv\Scripts\python.exe -m artemis.artemis_stage73_healthcheck. This patch does not modify microphone, AI, speech or main launcher.

@@ -1,0 +1,1 @@
+Standalone voice audition; extracts into its own folder. Requires pip install kokoro-onnx sounddevice numpy. Download kokoro-v1.0.onnx and voices-v1.0.bin from https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.1 and put alongside script. Run python artemis_kokoro_voice_test.py. Does not modify existing Artemis files.

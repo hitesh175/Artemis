@@ -73,10 +73,15 @@ class PlanetOrb(QWidget):
         base = s * .285
         speed = {"Idle":.55,"Listening":1.3,"Thinking":1.7,"Speaking":1.5,
                  "Command":1.3,"Error":2.0,"Sleep":.2}[self.state]
-        breath = math.sin(t*speed*2) * (.012 if self.state=="Sleep" else .026)
-        ripple = (self.sound * .07) if self.state in ("Listening", "Speaking") else 0
+        breath = math.sin(t*speed*2) * (.004 if self.state=="Sleep" else .012)
+        ripple = (self.sound * .045) if self.state == "Listening" else (.018*max(0, math.sin(t*5.8))) if self.state == "Speaking" else 0
         radius = base * (1+breath+ripple)
         c = self.current_color()
+
+        # A planet stays spherical. All visual energy moves *inside* this circle.
+        from PySide6.QtGui import QPainterPath
+        body = QPainterPath()
+        body.addEllipse(QPointF(cx, cy), radius, radius)
 
         # Soft atmospheric haze surrounding the planet.
         for i in range(12, 0, -1):
@@ -106,23 +111,69 @@ class PlanetOrb(QWidget):
         p.setBrush(QBrush(g))
         edge = QColor(c); edge.setAlphaF(.34)
         p.setPen(QPen(edge, 1.0))
-        p.drawEllipse(QPointF(cx, cy), radius, radius)
+        p.drawPath(body)
 
-        # Translucent moving latitude bands, clipped to the planet.
+        # Slowly flowing, translucent material; all strokes stay inside the planet.
         from PySide6.QtGui import QPainterPath
-        clip = QPainterPath()
-        clip.addEllipse(QPointF(cx, cy), radius-1, radius-1)
+        clip = body
         p.save()
         p.setClipPath(clip)
-        for j in range(8):
-            shift = math.sin(t*.15*speed+j*1.7)*radius*.13
-            yy = cy-radius*.67+j*radius*.19+shift
-            band = mix(c, "#D2D9DE", .35 if j%2 else .07)
-            band.setAlphaF(.07 if j%2 else .10)
-            p.setPen(QPen(band, 5+j%3*3))
-            p.drawArc(int(cx-radius*1.1), int(yy-radius*.15),
-                      int(radius*2.2), int(radius*.45), 0, 180*16)
+        for layer in range(11):
+            path = QPainterPath()
+            phase = t * (0.09 + 0.009 * layer) * speed
+            y0 = cy + (layer-5) * radius * .23
+            for k in range(81):
+                x = cx-radius*1.35 + k * radius*2.7/80
+                u = (x-cx)/radius
+                yy = (y0
+                      + radius*.105*math.sin(u*2.9 + phase + layer*.8)
+                      + radius*.042*math.sin(u*6.1 - phase*.67 + layer*1.73))
+                if k == 0:
+                    path.moveTo(x, yy)
+                else:
+                    path.lineTo(x, yy)
+            col = mix(c, "#CFD5DD", .18 if layer%2 else .5)
+            col.setAlphaF(.18 if layer%2 else .13)
+            p.setPen(QPen(col, 2.2 + (layer%4)*1.2))
+            p.drawPath(path)
+
+        # Floating wisps and current lines move at different speeds.
+        for idx in range(6):
+            phase = t*(.12 + idx*.025)*speed + idx*1.8
+            bx = cx + radius*.58*math.cos(phase)
+            by = cy + radius*.56*math.sin(phase*.73)
+            patch = QRadialGradient(QPointF(bx, by), radius*(.20+idx*.028))
+            center = mix(c, "#E2E1DF", .24 + .04*(idx%3))
+            center.setAlphaF(.18 + .04*(idx%3))
+            end = QColor(center); end.setAlpha(0)
+            patch.setColorAt(0, center)
+            patch.setColorAt(1, end)
+            p.setPen(Qt.NoPen)
+            p.setBrush(QBrush(patch))
+            p.drawEllipse(QPointF(bx, by), radius*.24, radius*.19)
+
+        # Visible sweeping semi-transparent atmospheric belts.
+        for layer in range(3):
+            q = QPainterPath()
+            drift = t*(.2+layer*.03)*speed
+            for k in range(101):
+                x = cx-radius*1.2 + k*radius*2.4/100
+                u = (x-cx)/radius
+                yy = cy + (layer-1)*radius*.47 + radius*.22*math.sin(u*2.5+drift+layer)
+                if k == 0: q.moveTo(x,yy)
+                else: q.lineTo(x,yy)
+            belt = QColor(c); belt.setAlphaF(.13 if layer == 1 else .09)
+            p.setPen(QPen(belt, 18 + 7*layer))
+            p.setBrush(Qt.NoBrush)
+            p.drawPath(q)
         p.restore()
+
+        # Crisp, restrained atmospheric boundary: never distorted.
+        p.setBrush(Qt.NoBrush)
+        edge2 = QColor(c)
+        edge2.setAlphaF(.28)
+        p.setPen(QPen(edge2, 1.15))
+        p.drawEllipse(QPointF(cx, cy), radius, radius)
 
         # Thin atmospheric orbital ellipse (not a bright neon ring).
         p.save()

@@ -8,3 +8,5 @@ models/
 .env
 *.log
 backup_before_artemis*/
+voice_test/kokoro-v1.0.onnx
+voice_test/voices-v1.0.bin

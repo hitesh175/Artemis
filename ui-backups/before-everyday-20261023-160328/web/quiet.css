@@ -1,0 +1,6 @@
+#quiet-toggle{border:1px solid #b6d1ea33;border-radius:99px;background:#17273d9c;color:#c9d6e8;padding:10px 14px;font-size:10px;letter-spacing:.05em;cursor:pointer}
+#quiet-toggle[aria-pressed=true]{color:#c4e8dd;border-color:#9ad5c647;background:#15332b80}
+#quiet-toggle:disabled{opacity:.5;cursor:wait}#voice-button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+#save-status{color:#8ca5b9;font-size:10px;letter-spacing:0;padding:0 25px 12px;min-height:24px;overflow-wrap:anywhere}
+.quiet-note{font-size:12px;line-height:1.6;color:#a5b8cb;margin-bottom:22px}
+@media(max-width:650px){#quiet-toggle{font-size:9px;padding:9px 11px}.top-right{gap:8px}}

@@ -1,0 +1,5 @@
+#weather-city{width:100%;background:#0b192b;border:1px solid #bcd1e43b;border-radius:9px;color:#e4ecf7;padding:10px;margin:8px 0 10px}
+#weather-find{border:1px solid #bcd1e43b;border-radius:9px;background:#24405b;color:#e4ecf7;padding:8px 13px;cursor:pointer}
+#weather-location,#weather-choices{font-size:12px;color:#b7c9de;line-height:1.7;overflow-wrap:anywhere}
+#weather-choices button{display:block;margin-bottom:8px;text-align:left}
+.daily-examples{font-size:12px;color:#a7bbd1;line-height:1.9}

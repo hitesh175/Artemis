@@ -1,0 +1,45 @@
+/* ARTEMIS Dashboard Refresh — visual changes only; the existing WebGL shader and native bridge are untouched. */
+:root { --pearl:#f3f6fb; --muted:#bbcbda; --tint:#cce2f4; }
+.app { background:radial-gradient(ellipse 72% 80% at 50% 52%,#5d6f85 0%,#394b62 34%,#233449 61%,#101c2e 100%); }
+.app::before { content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 46% 35% at 50% 37%,rgba(211,230,244,.25),transparent 76%),radial-gradient(ellipse 32% 59% at 5% 70%,rgba(138,165,199,.21),transparent 80%),radial-gradient(ellipse 31% 57% at 94% 67%,rgba(155,174,199,.16),transparent 84%); }
+.ambient { filter:blur(65px);opacity:.66; }
+.ambient-a { background:radial-gradient(ellipse 29% 32% at 10% 65%,rgba(176,197,213,.43),transparent 80%); }
+.ambient-b { background:radial-gradient(ellipse 31% 34% at 87% 58%,rgba(173,191,214,.33),transparent 76%); }
+.ambient-c { background:radial-gradient(ellipse 25% 30% at 50% 22%,rgba(209,219,238,.24),transparent 75%); }
+.grain { opacity:.075; }
+.atmosphere { position:absolute;top:18%;bottom:-10%;width:32vw;z-index:-1;opacity:.31;filter:blur(24px);pointer-events:none; }
+.atmosphere-left { left:-17%;transform:rotate(-27deg);background:linear-gradient(90deg,transparent 14%,rgba(220,234,244,.13) 41%,transparent 71%); }
+.atmosphere-right { right:-17%;transform:rotate(24deg);background:linear-gradient(90deg,transparent 18%,rgba(215,225,244,.13) 48%,transparent 77%); }
+.topbar {height:92px;padding:20px clamp(24px,4.6vw,80px);z-index:12;}
+.brand {gap:15px;}
+.logo {width:55px;height:55px;filter:drop-shadow(0 5px 18px rgba(7,13,28,.38));}
+.brand strong {font-size:18px;font-weight:600;letter-spacing:.27em;}
+.brand small {font-size:9px;letter-spacing:.23em;color:#c0d0df;}
+.local-chip {padding:10px 17px;border:1px solid rgba(241,250,255,.22);background:rgba(196,220,242,.075);box-shadow:inset 0 1px 0 rgba(255,255,255,.23);}
+.top-btn {background:rgba(206,225,244,.095);border-color:rgba(234,245,255,.32);}
+.center {height:calc(100vh - 92px);min-height:510px;isolation:isolate;overflow:visible;}
+.orb-visual {position:absolute;pointer-events:none;z-index:-1;width:min(870px,100vw);height:clamp(270px,49vh,540px);top:0;left:50%;transform:translateX(-50%);}
+.orbit {position:absolute;left:50%;top:49%;border-radius:50%;transform:translate(-50%,-50%) rotate(-19deg);box-shadow:0 0 25px rgba(217,235,255,.055),inset 0 0 28px rgba(210,234,247,.04);}
+.orbit-outer {width:82%;height:84%;border:1px solid rgba(224,240,255,.13);}
+.orbit-middle {width:67%;height:74%;border:1px solid rgba(235,245,255,.18);transform:translate(-50%,-50%) rotate(25deg);}
+.orbit-inner {width:54%;height:70%;border:1px solid rgba(224,236,250,.14);transform:translate(-50%,-50%) rotate(-37deg);}
+.orb-visual::before {content:"";position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);width:56%;height:73%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(222,238,250,.13),rgba(181,212,235,.035) 53%,transparent 72%);filter:blur(18px);}
+.orb-spark {position:absolute;width:4px;height:4px;border-radius:50%;background:#f7fbff;box-shadow:0 0 10px 4px rgba(223,237,255,.34);opacity:.72;}
+.orb-spark-a {left:20%;top:44%;}.orb-spark-b {right:20%;top:31%;width:3px;height:3px;opacity:.42;}
+.orb-stage {width:min(900px,97vw);height:clamp(260px,48vh,520px);z-index:1;flex-shrink:0;}
+.center h1 {position:relative;z-index:2;color:#f7f9fc;font-size:clamp(34px,4.4vw,60px);font-weight:420;letter-spacing:-.05em;margin:-4px 0 11px;text-shadow:0 3px 22px rgba(9,21,41,.23);}
+.subhead {position:relative;z-index:2;font-size:clamp(13px,1.1vw,15px);color:#d7e2ee;max-width:min(720px,86vw);}
+.status {margin-top:21px;gap:11px;padding:8px 15px;background:rgba(181,207,227,.075);border:1px solid rgba(231,243,255,.14);border-radius:40px;backdrop-filter:blur(10px);font-size:10px;letter-spacing:.18em;}
+.status i {width:6px;height:6px;}
+.microcopy {font-size:9px;letter-spacing:.27em;color:rgba(231,240,251,.52);margin-top:16px;white-space:nowrap;}
+.microcopy span {margin:0 11px;color:rgba(246,250,255,.61);}
+.dock {position:relative;z-index:2;margin-top:clamp(20px,3vh,32px);background:linear-gradient(155deg,rgba(241,247,255,.29),rgba(169,195,221,.14) 44%,rgba(214,227,245,.27));border:1px solid rgba(248,252,255,.48);box-shadow:inset 0 1px rgba(255,255,255,.59),0 19px 46px rgba(11,24,41,.34),0 2px 9px rgba(6,14,24,.24);backdrop-filter:blur(35px);min-height:69px;}
+.dock-btn {width:53px;height:53px;}
+.dock-btn.mic {background:linear-gradient(155deg,#f9fcff,#c7d8e7);color:#20374e;box-shadow:inset 0 1px white,0 3px 17px rgba(213,234,250,.39);}
+.sidepanel {background:linear-gradient(154deg,rgba(62,83,108,.977),rgba(24,43,65,.985) 72%);box-shadow:0 24px 100px rgba(6,15,28,.52),inset 0 1px rgba(249,252,255,.35);}
+.panel-head {border-bottom-color:rgba(216,234,251,.2);}
+.bubble.assistant {background:rgba(216,236,255,.1);}
+.settings-content .warning {border-color:rgba(230,210,167,.35);}
+@media(max-height:780px){.topbar{height:76px;padding-block:10px}.center{height:calc(100vh - 76px);min-height:440px}.orb-stage,.orb-visual{height:clamp(200px,40vh,330px)}.center h1{font-size:clamp(27px,4vw,43px);margin-top:-5px}.status{margin-top:12px}.microcopy{margin-top:8px}.dock{margin-top:15px;min-height:58px;padding:5px 9px}.dock-btn{height:46px;width:46px}}
+@media(max-width:630px){.topbar{padding-inline:18px}.brand strong{font-size:14px}.logo{height:44px;width:44px}.center h1{font-size:32px}.microcopy{font-size:8px;letter-spacing:.14em}.orb-visual{width:100vw}.dock{gap:6px}}
+@media(prefers-reduced-motion:reduce){.ambient{filter:blur(50px)}.dock-btn:hover{transform:none}}

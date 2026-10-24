@@ -1,0 +1,21 @@
+.app{--voice-level:0;--trace-duration:8s;--orbit-duration:6s;--pulse-duration:2.2s}
+.icon-mark{animation:none!important;will-change:auto;transform:none}
+.icon-mark:after{display:none}
+.icon-halo{position:absolute;inset:-23%;border-radius:50%;background:radial-gradient(ellipse,transparent 35%,rgba(var(--mode-rgb),.13) 49%,transparent 68%);opacity:calc(.32 + var(--voice-level)*.68);transform:scale(calc(1 + var(--voice-level)*.18));transition:transform .25s ease-out,opacity .25s ease-out;pointer-events:none;z-index:-1}
+.icon-energy{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.icon-energy path{fill:none;stroke:var(--mode);stroke-linecap:round;filter:drop-shadow(0 0 3px var(--mode));transition:stroke .6s}
+.icon-energy .crescent-light{stroke-width:3;stroke-dasharray:40 1480;animation:crescent-flow var(--trace-duration) linear infinite;opacity:.64}
+.icon-energy .orbit-light{stroke-width:2.6;stroke-dasharray:20 1300;animation:orbit-flow var(--orbit-duration) linear infinite;opacity:.8}
+.icon-energy .inner-light{stroke-width:2;stroke-dasharray:20 780;animation:inner-flow var(--trace-duration) linear infinite;opacity:.28}
+.app[data-mode=listening] .icon-energy path{opacity:calc(.45 + var(--voice-level)*.5)}
+.app[data-mode=thinking] .orbit-light{stroke-dasharray:80 1240;opacity:.9}
+.app[data-mode=speaking] .icon-halo{animation:playback-pulse var(--pulse-duration) ease-in-out infinite}
+.app[data-mode=error] .icon-energy path{animation-play-state:paused;opacity:.3}
+@keyframes crescent-flow{to{stroke-dashoffset:-1520}}
+@keyframes orbit-flow{to{stroke-dashoffset:-1320}}
+@keyframes inner-flow{to{stroke-dashoffset:-800}}
+@keyframes playback-pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.85;transform:scale(1.09)}}
+.app.icon-motion-off .icon-energy path,.app.icon-motion-off .icon-halo{animation:none!important;filter:none}
+.app.icon-motion-off .icon-halo{transform:none!important;transition:none}
+.app.icon-motion-off .icon-energy path{stroke-dasharray:none;opacity:.10}
+@media(prefers-reduced-motion:reduce){.icon-energy path,.icon-halo{animation:none!important;transition:none!important}.icon-halo{transform:none!important}.icon-energy path{stroke-dasharray:none;opacity:.10}}

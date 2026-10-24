@@ -1,0 +1,31 @@
+/* Professional refinement: quiet scenery, clear hierarchy, restrained glass. */
+:root{font-family:'Segoe UI Variable Text','Segoe UI',sans-serif;--premium-border:rgba(201,222,245,.19)}
+.app:before{background:linear-gradient(180deg,rgba(3,11,23,.66),rgba(5,15,29,.23) 38%,rgba(3,12,24,.55) 72%,rgba(2,9,20,.76)),radial-gradient(ellipse at 50% 37%,transparent 20%,rgba(2,9,20,.27) 85%)}
+.topbar{height:100px;padding:23px clamp(24px,4.2vw,76px);align-items:center}
+.brand{gap:17px}.logo{width:48px;height:48px;filter:drop-shadow(0 4px 12px #0004)}
+.brand strong{font-size:17px;letter-spacing:.29em;font-weight:600}.brand small{font-size:8px;letter-spacing:.25em;margin-top:7px;color:#a3b3c7}
+.top-right{gap:14px}.local-chip{font-size:9px;letter-spacing:.17em;padding:12px 17px;background:#14243866;border-color:var(--premium-border);box-shadow:inset 0 1px #ffffff0a;backdrop-filter:blur(18px)}
+.local-chip i{width:5px;height:5px;box-shadow:0 0 8px #a5e9d344}
+.top-btn{width:40px;height:40px;font-size:20px;border-color:var(--premium-border);background:#14243866;box-shadow:inset 0 1px #ffffff0a}
+.center{height:calc(100dvh - 100px);padding:0 24px 38px;justify-content:center}
+.orb-stage{height:clamp(200px,40vh,420px);width:min(790px,92vw);min-height:140px;filter:drop-shadow(0 0 16px #8dcfff22)}
+.orb-visual{top:calc(50% - 310px);height:400px;width:min(830px,89vw);opacity:.55}
+.orbit{border-color:#e8d8bd3b;box-shadow:none}.orbit-middle{border-color:#c7dfff35}.orbit-inner{border-color:#dcecff24}
+.orbit:after{width:4px;height:4px;box-shadow:0 0 9px 2px #ffda8e55}.orbit-middle:after{width:5px;height:5px}
+.center h1{font-size:clamp(30px,3.25vw,48px);font-weight:350;letter-spacing:-.035em;line-height:1.15;margin:14px 0 15px;color:#f0f4fc;text-shadow:0 2px 20px #02091480}
+.subhead{font-size:14px;line-height:1.65;color:#afbed2;max-width:640px;letter-spacing:.005em;margin:0 20px;max-height:10vh}
+.status{font-size:8px;letter-spacing:.2em;margin-top:20px;color:#a9bdcc;gap:8px}.status i{box-shadow:none;background:#9acdbf}
+.dock{margin-top:30px;gap:10px;padding:8px 15px;border-radius:24px;background:linear-gradient(135deg,#9eb8d526,#12243b8c);border-color:#c7ddf23d;box-shadow:inset 0 1px #ffffff1a,0 14px 38px #02071466;backdrop-filter:blur(26px)}
+.dock-btn{width:46px;height:46px;color:#ccd9eb;border-radius:15px}.dock-btn svg{width:21px;height:21px;stroke-width:1.5}.dock-btn:hover{background:#d3e5ff12;transform:translateY(-1px)}
+.dock-btn.mic{width:54px;height:54px;background:linear-gradient(145deg,#f4f8ff,#bdd3ee);color:#29476b;box-shadow:inset 0 1px #fff,0 0 17px #a3ccff29;border-radius:18px}
+.dock-sep{height:22px;background:#d0e1f426}.dock-btn:active{transform:scale(.96)}
+.sidepanel{border-radius:20px;background:linear-gradient(150deg,#15273bf5,#091525fc);border-color:var(--premium-border);box-shadow:0 24px 80px #0007;backdrop-filter:blur(30px)}
+.panel-head{padding:25px;border-color:#c2d7ee14}.panel-head small{font-size:8px;color:#96acc5}.panel-head h2{font-size:23px}.close{border-color:var(--premium-border);background:#b4cff00a;box-shadow:none}
+.bubble{font-size:14px;line-height:1.7}.bubble.assistant{background:#b8d4ef0c;border-color:#b8d4ef17}.bubble.user{background:#b9cfe7;color:#152436}
+.composer{background:#a9c6e80a;border-color:#bdd8f22a;border-radius:14px}.composer button{background:#c1d5eb;border-radius:10px}.panel-foot{font-size:8px}
+.warning{border-color:#d5c49a28;background:#dfcda306;color:#aabbcf}.veil{background:#020a1666;backdrop-filter:blur(6px)}
+.toast{background:#14253bf5;border-color:#bdd8f22a;box-shadow:0 12px 35px #0005}
+button:focus-visible,input:focus-visible{outline:2px solid #a9caeb;outline-offset:4px}
+@media(max-height:740px){.topbar{height:80px;padding-top:15px;padding-bottom:15px}.center{height:calc(100dvh - 80px);padding-bottom:18px}.orb-stage{height:33vh;min-height:130px}.orb-visual{top:calc(50% - 240px);height:300px}.center h1{font-size:34px;margin:9px 0 10px}.subhead{font-size:13px}.status{margin-top:12px}.dock{margin-top:18px;padding:7px 14px}.dock-btn{height:42px;width:42px}.dock-btn.mic{height:48px;width:48px}}
+@media(max-width:650px){.topbar{padding-left:22px;padding-right:22px}.brand{gap:12px}.logo{width:42px;height:42px}.brand strong{font-size:14px}.brand small{font-size:7px}.center{padding-left:12px;padding-right:12px}.center h1{font-size:30px;text-align:center}.subhead{font-size:13px}.orb-visual{width:94vw}.dock{gap:7px}}
+@media(prefers-reduced-motion:reduce){.dock-btn,.orb-stage,.sidepanel{transition:none}}

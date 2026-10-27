@@ -10,3 +10,18 @@ models/
 backup_before_artemis*/
 voice_test/kokoro-v1.0.onnx
 voice_test/voices-v1.0.bin
+
+@'
+
+# Local executable, browser data, and backups
+/Artemis.exe
+/data/music-brave/
+/ui-backups/
+
+# Mutable desktop state
+/data/desktop-state.json
+
+# Downloaded voice models
+/voice_test/kokoro-v1.0.onnx
+/voice_test/voices-v1.0.bin
+'@ | Add-Content -LiteralPath .gitignore

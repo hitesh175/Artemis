@@ -104,8 +104,11 @@ class Everyday:
 
     def execute(self,text):
         if not isinstance(text,str):return {'handled':False}
-        s=text.casefold().strip(' .?!').replace('’',"'")
+        s=re.sub(r'\s+',' ',text.casefold()).strip(' .?!').replace('’',"'")
         s=re.sub(r'^(?:hey\s+)?artemis[,!:. ]+','',s)
+        s=re.sub(r'^(?:(?:can|could|would) you (?:please )?|please )','',s)
+        # Correct this common speech homophone only for a complete weather-like request.
+        s=re.sub(r'^whether(?=\s+(?:today|tomorrow)\b)','weather',s)
         if s in ('help','what can you do','list commands','show commands','daily help'):
             reply=HELP
         elif s in ('what time is it','whats the time',"what's the time",'tell me the time','current time'):
@@ -116,10 +119,20 @@ class Everyday:
             expr=re.sub(r'^(?:calculate|compute|what is|what\x27s)\s+','',s)
             try:reply=expr+' = '+format(arithmetic(expr),'.12g')
             except (ValueError,SyntaxError,ZeroDivisionError,OverflowError) as exc:reply='Could not calculate that: '+str(exc)
-        elif ((re.search(r'\b(?:weather|forecast)\b',s) and re.match(r'^(?:what|how|tell|show|give|weather|forecast|today|tomorrow)',s) and not re.search(r'\b(?:explain|code|works|history)\b',s)) or re.match(r'^(?:will it rain|is it raining|do i need (?:an? )?umbrella|should i take (?:an? )?umbrella)',s)):
+        elif ((re.search(r'\b(?:weather|forecast)\b',s) and not re.search(r'\b(?:explain|code|work|works|history|documentary|video|movie|app|api|meaning|definition)\b',s)) or re.match(r'^(?:will it rain|is it raining|do i need (?:an? )?umbrella|should i take (?:an? )?umbrella)',s)):
+            if re.search(r'\b(?:week|yesterday|weekend)\b',s):
+                return {'handled':True,'reply':'I currently support today and tomorrow. Try “weather tomorrow”.'}
             city=re.search(r'\bin\s+(.+)',s)
-            if city:
-                query=re.sub(r'\b(?:today|tomorrow|please)\b','',city.group(1)).strip()
+            query=city.group(1) if city else ''
+            if not query:
+                leading=re.match(r'^(.+?)\s+(?:weather|forecast)\b',s)
+                if leading and not re.match(r"^(?:what|watch|how|tell|show|give|today|tomorrow|check|the|current|can|could|would|please)\b",leading.group(1)):
+                    query=leading.group(1)
+                else:
+                    trailing=re.match(r'^(?:weather|forecast)\s+(?:for\s+)?(.+)',s)
+                    if trailing:query=trailing.group(1)
+            query=re.sub(r"\b(?:today|tomorrow|please|right now|report|update|conditions)\b",'',query).strip(' ,.!?')
+            if query:
                 if self._location and query.casefold() in (self._location['label'].split(',')[0].casefold(),self._location['label'].casefold()):
                     return {'handled':True,'reply':self._weather('tomorrow' in s)}
                 found=self.find(query)
@@ -130,3 +143,4 @@ class Everyday:
             else:reply=self._weather('tomorrow' in s)
         else:return {'handled':False}
         return {'handled':True,'reply':reply}
+

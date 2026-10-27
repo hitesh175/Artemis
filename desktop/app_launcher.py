@@ -42,6 +42,15 @@ class AppLauncher:
             except Exception as exc:return {'ok':False,'error':str(exc)}
 
     def execute(self,text):
+        if isinstance(text,str) and text.casefold().strip(' .?!')=='spotify':
+            return {'handled':True,'reply':'To launch Spotify, say “open Spotify”. YouTube and music playback control remain disabled.'}
+        if isinstance(text,str) and len(text)<=3000:
+            command=re.sub(r'\s+',' ',text).strip()
+            command=re.sub(r'^(?:hey\s+)?artemis[,!:. ]+','',command,flags=re.I)
+            command=re.sub(r'^(?:(?:can|could|would) you (?:please )?|please )','',command,flags=re.I)
+            if (re.match(r'^(?:play|pause|resume|stop|search|find|open|launch|start)\b',command,re.I)
+                and re.search(r'\b(?:you\s*tube|music)\b',command,re.I)):
+                return {'handled':True,'launched':False,'reply':'YouTube and music control are disabled in Artemis. You can use your YouTube app directly.'}
         if isinstance(text,str) and text.casefold().strip(' .?!') in {
             'can you open apps','can you open programs','what apps can you open',
             'what can you do','help','list commands'}:

@@ -164,8 +164,13 @@ async function sendArtemisMessage(msg, fromVoice=false){
   if(fromVoice){$('headline').textContent='Thinking…';$('subhead').textContent='Artemis is preparing your reply.';}
   try{
     const local=await window.pywebview?.api?.handle_app_command?.(msg);
-    if(/^(?:(?:hey\s+)?artemis[,!:. ]+)?(?:(?:can|could|would) you (?:please )?|please )?(?:open|launch|start)\s+/i.test(msg)&&!window.pywebview?.api?.handle_app_command){
-      throw Error('App launcher is unavailable in this window. Close all Artemis windows and reopen Artemis from the desktop shortcut.');
+    const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
+    const weatherRequest=(/\b(?:weather|forecast)\b/.test(toolText)&&!(/\b(?:explain|code|work|works|history|documentary|video|movie|app|api|meaning|definition)\b/.test(toolText)))||/^(?:will it rain|is it raining|do i need (?:an? )?umbrella|should i take (?:an? )?umbrella)/.test(toolText);
+    if(weatherRequest&&local?.handled!==true){
+      throw Error('The desktop weather service did not handle this request. Close all Artemis windows and reopen Artemis.exe, then ask again.');
+    }
+    if(/^(?:(?:hey\s+)?artemis[,!:. ]+)?(?:(?:can|could|would) you (?:please )?|please )?(?:open|launch|start)\s+/i.test(msg)&&local?.handled!==true){
+      throw Error('The desktop app launcher did not handle this request. Close all Artemis windows and reopen Artemis.exe, then try “open Spotify”.');
     }
     let data;
     if(local?.handled){data=local;}
@@ -238,5 +243,6 @@ $('clear-chat').addEventListener('click',()=>{if(busy){popup('Wait for the curre
 document.addEventListener('fullscreenchange',()=>syncFullscreenButton(Boolean(document.fullscreenElement)));
 window.addEventListener('pywebviewready',()=>{window.pywebview?.api?.get_fullscreen?.().then(v=>syncFullscreenButton(Boolean(v.fullscreen))).catch(()=>{});});
 setState('idle');initGlass();
+
 
 

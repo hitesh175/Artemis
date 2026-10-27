@@ -43,6 +43,12 @@ class SpeechOutput:
         threading.Thread(target=self._run, args=(text,), daemon=True).start()
         return {'ok': True}
 
+    def clear_error(self):
+        with self.lock:
+            if not self.playing and self.error:
+                self.error = ''
+                self.revision += 1
+
     def _run(self, text):
         try:
             if self.speaker is None:
@@ -54,6 +60,8 @@ class SpeechOutput:
         except Exception as exc:
             with self.lock:
                 self.error = str(exc)
+                # Recreate the engine on an explicit retry after a failed initialization/playback.
+                self.speaker = None
             print('[ARTEMIS Desktop speech]', exc, flush=True)
         finally:
             with self.lock:

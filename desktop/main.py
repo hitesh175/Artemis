@@ -211,6 +211,7 @@ class WindowBridge:
                 if self._voice.status().get('state') in ('listening', 'transcribing'):
                     return {'ok': False, 'error': 'Finish the current recording first.'}
                 self._voice.cancel()
+                self._speech.clear_error()
             self._handsfree_enabled = bool(enabled)
             print('[Hands-free]', 'enabled' if enabled else 'disabled',flush=True)
             if not enabled:

@@ -27,11 +27,13 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
     def do_POST(self):
         if self.path!='/api/chat':self.send_error(404);return
+        contacting_model=False
         try:
             if self.headers.get('Content-Type','').split(';')[0].strip()!='application/json':raise ValueError('Expected JSON')
             size=int(self.headers.get('Content-Length','0'))
             if not 0<size<=35000:raise ValueError('Invalid message size')
             payload=json.loads(self.rfile.read(size))
+            if not isinstance(payload,dict):raise ValueError('Expected a JSON object')
             message=payload.get('message')
             if not isinstance(message,str) or not 1<=len(message.strip())<=3000:raise ValueError('Message must contain 1–3000 characters')
             history=payload.get('history',[])
@@ -41,12 +43,21 @@ class Handler(SimpleHTTPRequestHandler):
                 if isinstance(item,dict) and item.get('role') in ('assistant','user') and isinstance(item.get('content'),str):safe.append({'role':item['role'],'content':item['content'][:4000]})
             req_data=json.dumps({'model':'artemis','stream':False,'think':False,'messages':[{'role':'system','content':SYSTEM}]+safe+[{'role':'user','content':message.strip()}],'options':{'num_predict':320}}).encode()
             req=request.Request('http://127.0.0.1:11434/api/chat',data=req_data,headers={'Content-Type':'application/json'},method='POST')
+            contacting_model=True
             with request.urlopen(req,timeout=100) as result:response=json.load(result)
-            answer=response.get('message',{}).get('content','').strip()
+            if not isinstance(response,dict) or not isinstance(response.get('message'),dict):
+                raise RuntimeError('Invalid model response')
+            answer=response['message'].get('content','')
+            if not isinstance(answer,str):raise RuntimeError('Invalid model reply')
+            answer=answer.strip()
             if not answer:raise RuntimeError('Empty Ollama reply')
             self.reply(200,{'reply':answer})
-        except ValueError as exc:self.reply(400,{'error':str(exc)})
-        except Exception as exc:self.reply(502,{'error':'Ollama connection failed. Make sure Ollama is running with the artemis model. Detail: '+str(exc)})
+        except Exception as exc:
+            if not contacting_model and isinstance(exc,(ValueError,UnicodeError)):
+                self.reply(400,{'error':str(exc)})
+            else:
+                print('[Chat service]',type(exc).__name__,str(exc)[:300],flush=True)
+                self.reply(502,{'error':'Artemis could not get a reply from Ollama. Check that Ollama is running and the artemis model is installed, then send your message again.'})
     def reply(self,status,payload):
         data=json.dumps(payload,ensure_ascii=False).encode('utf-8')
         self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)

@@ -80,6 +80,8 @@ with tempfile.TemporaryDirectory() as tmp:
     assert b.due_reminders()=={'ok':True,'reminders':[]}
     assert b.dismiss_reminder(1)['ok']
     assert b.start_listening()['ok'] is False
+    with patch.object(b._warmup,'busy',return_value=True):
+        assert not b.set_handsfree(True)['ok']
     assert b.speak_reply('Must not play')['ok'] is False
     assert b.set_speech_enabled(True)['ok'] is False
     assert b.stop_speaking()['ok']

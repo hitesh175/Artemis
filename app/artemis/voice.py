@@ -123,6 +123,18 @@ class Speaker:
         # Do not disguise the absence of both requested offline engines.
         print('[Voice] Neither Kokoro nor Piper could be loaded.', flush=True)
 
+    def prime(self):
+        """Exercise cached synthesis in memory only; never open an audio stream."""
+        with _LOAD_LOCK:
+            if self.kokoro is not None:
+                self.kokoro.create('Ready.',voice=KOKORO_VOICE,speed=1.04,lang='en-gb')
+                return 'Kokoro'
+            if self.piper is not None:
+                with wave.open(io.BytesIO(),'wb') as wav:
+                    self.piper.synthesize_wav('Ready.',wav,syn_config=self._piper_config_cls(length_scale=1.0))
+                return 'Piper'
+            raise RuntimeError('No offline speech engine available.')
+
     def say(self, message, cancel_event=None):
         cancel_event = cancel_event or threading.Event()
         if cancel_event.is_set():return

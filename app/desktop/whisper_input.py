@@ -19,6 +19,7 @@ class WhisperInput:
         self._thread = None
         self._model = None
         self._model_name = None
+        self._model_lock = threading.Lock()
         self._status = {'state': 'idle', 'text': '', 'error': '', 'revision': 0, 'level': 0.0}
 
     def _update(self, state, text='', error=''):
@@ -69,12 +70,22 @@ class WhisperInput:
         return {'ok': True}
 
     def _load_model(self):
+        with self._model_lock:
+            return self._load_model_unlocked()
+
+    def prepare(self):
+        with self._model_lock:
+            self._load_model_unlocked(allow_download=False)
+            return self._model_name
+
+    def _load_model_unlocked(self, allow_download=None):
         from faster_whisper import WhisperModel
         name = os.environ.get('ARTEMIS_WHISPER_MODEL', 'base.en').strip() or 'base.en'
         if name not in ('base.en', 'small.en', 'medium.en'):
             raise ValueError('ARTEMIS_WHISPER_MODEL must be base.en, small.en or medium.en')
         if self._model is None or self._model_name != name:
-            allow_download = os.environ.get('ARTEMIS_WHISPER_ALLOW_DOWNLOAD', '0') == '1'
+            if allow_download is None:
+                allow_download = os.environ.get('ARTEMIS_WHISPER_ALLOW_DOWNLOAD', '0') == '1'
             # CPU int8 is deliberately kept as the known-working default.
             # CPU medium may be slow; GPU selection is a separate compatibility step.
             device = os.environ.get('ARTEMIS_WHISPER_DEVICE', 'cpu').strip().lower()

@@ -23,6 +23,7 @@ from model_settings import ModelSettings
 from performance_log import PERFORMANCE
 from briefing_schedule import BriefingSchedule
 from calendar_store import CalendarStore
+from voice_warmup import VoiceWarmup
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -48,6 +49,7 @@ class WindowBridge:
         ])
         self._voice = WhisperInput()
         self._speech = SpeechOutput()
+        self._warmup = VoiceWarmup(self._voice,self._speech)
         self._saved = DesktopState()
         self._quiet_mode = self._saved.load()['preferences']['quiet']
         self._handsfree_enabled = False
@@ -226,13 +228,16 @@ class WindowBridge:
     def start_listening(self):
         if self._quiet_mode:
             return {'ok': False, 'error': 'Quiet mode is on. Use text chat.'}
-        return self._voice.start()
+        with self._interaction_lock:
+            if self._warmup.busy():return {'ok':False,'error':'Wait for voice model preparation to finish.'}
+            return self._voice.start()
 
     def set_handsfree(self, enabled):
         with self._interaction_lock:
             if enabled and self._quiet_mode:
                 return {'ok': False, 'error': 'Turn off Quiet mode before enabling hands-free.'}
             if enabled:
+                if self._warmup.busy():return {'ok':False,'error':'Wait for voice model preparation to finish.'}
                 if self._voice.status().get('state') in ('listening', 'transcribing'):
                     return {'ok': False, 'error': 'Finish the current recording first.'}
                 self._voice.cancel()
@@ -270,7 +275,18 @@ class WindowBridge:
     def speak_reply(self, text):
         if self._quiet_mode:
             return {'ok': False, 'error': 'Speech output is muted'}
-        return self._speech.speak(text)
+        with self._interaction_lock:
+            if self._warmup.busy():return {'ok':False,'error':'Voice models are warming up. Your reply remains in chat.'}
+            return self._speech.speak(text)
+
+    def warm_voice_models(self):
+        with self._interaction_lock:
+            if self._handsfree_enabled or self._voice.status()['state'] in ('listening','transcribing') or self._speech.status()['playing']:
+                return {'ok':False,'error':'Stop hands-free and finish recording or speaking before warming models.'}
+            return self._warmup.start()
+
+    def voice_warmup_status(self):
+        return self._warmup.status()
 
     def stop_speaking(self):
         self.set_handsfree(False)

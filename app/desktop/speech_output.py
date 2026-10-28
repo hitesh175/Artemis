@@ -20,6 +20,7 @@ class SpeechOutput:
         self.revision = 0
         self.speaker = None
         self._cancel = threading.Event()
+        self._speaker_lock = threading.Lock()
 
     def status(self):
         with self.lock:
@@ -62,16 +63,22 @@ class SpeechOutput:
             self.revision += 1
             return {'ok':True, **self.status()}
 
+    def prepare(self):
+        with self._speaker_lock:
+            if self.speaker is None:
+                from artemis.voice import Speaker
+                self.speaker=Speaker(enabled=True)
+            if getattr(self.speaker,'kokoro',None) is None and getattr(self.speaker,'piper',None) is None:
+                self.speaker=None
+                raise RuntimeError('No cached offline speech engine is available.')
+            return self.speaker
+
     def _run(self, text, cancel):
         started=time.perf_counter();load_started=started;load_seconds=0;timings={};failed=False
         try:
             if cancel.is_set():return
-            if self.speaker is None:
-                from artemis.voice import Speaker
-                self.speaker = Speaker(enabled=True)
-                load_seconds=time.perf_counter()-load_started
-            if getattr(self.speaker, 'kokoro', None) is None and getattr(self.speaker, 'piper', None) is None:
-                raise RuntimeError('No offline speech engine available. Check voice_test models or Piper fallback.')
+            self.prepare()
+            load_seconds=time.perf_counter()-load_started
             if cancel.is_set():return
             timings=self.speaker.say(text,cancel_event=cancel) or {}
         except Exception as exc:

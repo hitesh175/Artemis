@@ -423,4 +423,34 @@ Installed backup:
 The rollback retains compatible calendar dependencies as well as the PDF package.
 Protocol/library reference: https://recurring-ical-events.readthedocs.io/en/latest/user-guide/examples.html.
 
+## Silent voice-model warm-up
+
+Settings → Voice preparation → Warm up voice models explicitly prepares cached
+Whisper and Kokoro/Piper models. Whisper is loaded with downloads forbidden even
+if the normal recording configuration permits downloads. Speech generation runs
+a short “Ready” synthesis in memory and discards its output; no audio stream,
+microphone capture or conversation submission is started.
+
+Nothing runs automatically at startup. Quiet mode, speech preference and hands-free
+state are not changed. Warm-up must start while recording, speech and hands-free
+are inactive. While it runs, new voice operations are rejected with a wait message;
+text and deterministic tools remain available. A chat reply arriving during warm-up
+stays in chat without being queued for later speech.
+
+The panel shows each model's readiness and preparation duration. Missing cached
+models report an error and can be retried after setup. It does not claim to verify
+microphone permission, speaker hardware, recognition quality or real-world latency.
+The models stay in the current app process until exit, so another restart requires
+warm-up again. Preparing them may use CPU and memory, and does not guarantee a
+specific response time or eliminate later synthesis cost. There is no cancellation
+of an in-progress model load/synthesis kernel.
+
+Unit checks cover single-job behavior, partial failure, status isolation, disabled
+downloads and absence of recording/playback calls. Installed WebView2 verification
+clicks the actual button with isolated settings, checks both models become ready,
+and confirms Quiet mode remains on with no recording thread or speech playback.
+
+Installed backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-180518`.
+
 

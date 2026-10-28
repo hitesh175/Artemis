@@ -1,0 +1,14 @@
+.window-chrome{height:34px;display:flex;align-items:stretch;position:relative;z-index:30;background:#080f1b;border-bottom:1px solid #bcd0ea0c;user-select:none}
+.window-drag{flex:1;min-width:50px;display:flex;align-items:center;gap:8px;padding:0 12px;cursor:default;color:#91a5bd;font-size:10px;letter-spacing:.06em}
+.window-drag img{width:16px;height:16px;object-fit:contain;pointer-events:none}
+.window-chrome button{border:0;background:transparent;color:#b7c6da;width:42px;padding:0;cursor:pointer;display:grid;place-items:center}
+.window-chrome button:hover{background:#a6c6ed18}.window-chrome #window-close:hover{background:#a93744;color:white}
+.window-chrome svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.3;pointer-events:none}
+.app .center{height:calc(100dvh - 134px)}
+.app[data-layout=mini] .center{height:calc(100dvh - 78px)}
+.app[data-layout=chat] #chat-panel,.app[data-layout=chat] #settings-panel{top:78px}
+.app[data-layout=mini] #window-maximize,.app[data-layout=chat] #window-maximize{display:none}
+.app[data-layout=mini] .window-chrome button,.app[data-layout=chat] .window-chrome button{width:36px}
+.app[data-layout=mini] .icon-mark{width:100px}
+.app[data-layout=chat] .center{display:none}
+@media(max-height:740px){.app .center{height:calc(100dvh - 114px)}.app[data-layout=mini] .center{height:calc(100dvh - 78px)}}

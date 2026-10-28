@@ -1,0 +1,8 @@
+# Active desktop application; Python 3.11, Windows x64.
+# Exact versions from the existing environment are in requirements-baseline.lock.
+pywebview>=5,<7
+sounddevice>=0.4.6,<0.6
+numpy>=1.26,<2
+faster-whisper
+kokoro-onnx
+piper-tts

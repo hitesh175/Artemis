@@ -1,0 +1,18 @@
+/* Artemis: moonlight, celestial navigation and a restrained silver palette. */
+.app{background:#070e1b url('lunar-sky.svg') center/cover no-repeat;color:#e9edf4}
+.app:before{background:radial-gradient(ellipse 32% 40% at 50% 32%,#688fbe18,transparent 80%),linear-gradient(180deg,#02071112,transparent 55%,#02071155)}
+.topbar{border-bottom:1px solid #dce5f10d}
+.brand small{color:#a5b3c8}.local-chip,.top-btn{background:#14203388;border-color:#bacce52b}
+.orb-stage{height:clamp(230px,43vh,440px);filter:drop-shadow(0 0 20px #bdd8f015)}
+.orb-visual{display:none!important}
+.center{padding-bottom:30px}
+.center h1{font-size:clamp(30px,3.1vw,46px);font-weight:350;letter-spacing:-.035em;color:#edf1f8;margin-top:8px}
+.subhead{color:#9eafc6;font-size:14px}
+.status{color:#b5c2d2}.status i{background:#d2c3a2}
+.dock{background:linear-gradient(140deg,#7489a12a,#132035b8);border:1px solid #cad9ee38;box-shadow:inset 0 1px #eef5ff17,0 16px 40px #0005;border-radius:25px}
+.dock-btn{color:#d2ddec}.dock-btn.mic{background:linear-gradient(145deg,#f0eee7,#bbc6d5);color:#293e56;box-shadow:0 0 19px #c4d8ed18}
+.dock-sep{background:#c9d8e828}.sidepanel{background:linear-gradient(150deg,#142238fa,#091322fc);border-color:#bdcee72a}
+.panel-head small,.settings-content h3{color:#c4b798}.composer button{background:#d3dae4}.bubble.user{background:#c7d3e1}
+.lunar-signature{color:#b9aa8d;letter-spacing:.28em;font-size:8px;margin:17px 0 0;text-align:center}
+@media(max-height:740px){.orb-stage{height:34vh;min-height:130px}.lunar-signature{margin-top:10px;font-size:7px}.center{padding-bottom:15px}.dock{margin-top:15px}}
+@media(max-width:650px){.lunar-signature{font-size:7px;letter-spacing:.18em}.subhead{font-size:13px}}

@@ -1,0 +1,15 @@
+.app{background:#070d18 url('artemis-midnight.svg') center/cover no-repeat}
+.app:before{background:radial-gradient(ellipse 32% 44% at 50% 36%,#3d62842a,transparent 80%),linear-gradient(180deg,#03091412,transparent 55%,#03091488)}
+.orb-stage{height:clamp(250px,45vh,460px);width:min(830px,94vw);position:relative;isolation:isolate;filter:none}
+.orb-stage:before{content:'';position:absolute;inset:7% 28% 9%;border-radius:50%;background:radial-gradient(ellipse,#b6d6f017,transparent 70%);z-index:-1}
+.artemis-bow{position:absolute;inset:-5% 0;width:100%;height:110%;pointer-events:none;overflow:visible}
+.artemis-bow .crescent{fill:none;stroke:url(#bow-metal);stroke-width:2.2;stroke-linecap:round;filter:drop-shadow(0 0 5px #bedfff55)}
+.artemis-bow .trace{fill:none;stroke:#bcd8ed;stroke-opacity:.15;stroke-width:.65}
+.artemis-bow .string{fill:none;stroke:#c0d3e5;stroke-width:.6;stroke-opacity:.28}
+.artemis-bow .point{fill:#f1e8d7;filter:drop-shadow(0 0 4px #d7eaff)}
+.center h1{font-size:clamp(30px,3vw,44px);margin-top:4px}.lunar-signature{font-size:8px;letter-spacing:.29em;color:#aab8c9}
+.dock{background:linear-gradient(130deg,#6f859c26,#112036c9);border-color:#cad9ee2e}
+@media(max-height:740px){.orb-stage{height:35vh;min-height:155px}.center h1{font-size:33px}}
+@media(max-width:650px){.orb-stage{width:100vw}.artemis-bow{inset:0;width:100%;height:100%}}
+
+.artemis-bow{display:none!important}.orb-stage:before{background:radial-gradient(ellipse,#b6d6f00d,transparent 70%)}

@@ -1,0 +1,15 @@
+/* Quiet obsidian workspace, with a single violet-blue energy accent. */
+.app{background:#070911;color:#e8edf8}
+.app:before{background:radial-gradient(ellipse 35% 42% at 50% 36%,#38265d24,transparent 78%),radial-gradient(ellipse 55% 60% at 70% 55%,#14263e1c,transparent 80%);pointer-events:none}
+.orb-visual,.ambient,.grain,.atmosphere{display:none!important}
+.orb-stage{filter:none;height:clamp(200px,40vh,400px)}
+.topbar{border-bottom:1px solid #bdcbeb0b;margin:0 3vw;padding-left:1.2vw;padding-right:1.2vw}
+.local-chip,.top-btn{background:#121724aa;border-color:#c1c9ed1a;box-shadow:none}
+.center h1{font-size:clamp(30px,3.1vw,45px);color:#e6eaf6;text-shadow:none;font-weight:350}
+.subhead{color:#8e9ab2}.status{color:#a4b2c9}.status i{background:#9cacef}
+.dock{background:linear-gradient(135deg,#1d2233d9,#101522ee);border-color:#c5cdef26;box-shadow:inset 0 1px #ffffff09,0 18px 40px #0004;backdrop-filter:none}
+.dock-btn.mic{background:linear-gradient(145deg,#dce7ff,#aabfe9);box-shadow:0 0 16px #8bafff12;color:#253451}
+.sidepanel{background:#101522fa;backdrop-filter:none;border-color:#c5cdef20}
+.veil{backdrop-filter:none;background:#030610a6}
+.toast{background:#171e30;border-color:#c5cdef20}
+@media(max-height:740px){.orb-stage{height:33vh;min-height:130px}.center h1{font-size:34px}}

@@ -1,0 +1,276 @@
+{
+  "captured": "2026-10-28",
+  "source": "C:\\Users\\kanag\\Desktop\\Artemis",
+  "files": [
+    {
+      "path": "Artemis.pyw",
+      "sha256": "c42f08a63c8cfbd4ca3deefb9d8fcf4d260623441a3887d16ef4e9763930c3e6",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\Artemis.pyw"
+    },
+    {
+      "path": "run_logged.py",
+      "sha256": "7aca18b8c5f93c50c7d13626b3164b11fcaebd0508a8130df364ca356dfb760d",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\run_logged.py"
+    },
+    {
+      "path": "artemis/__init__.py",
+      "sha256": "ac1dbcf17e2a49b1ad543543b2b731e96ba9df974456b71131d0de1fdb7b1041",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\artemis\\__init__.py"
+    },
+    {
+      "path": "artemis/artemis_app_resolver_723.py",
+      "sha256": "77bb8f2f642fa717be8ac41ee36e61556b59d1b70c57681e24cf1c8e15ee8c53",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\artemis\\artemis_app_resolver_723.py"
+    },
+    {
+      "path": "artemis/voice.py",
+      "sha256": "3b13d4f95c66fdae617c60529a3305e0e1bd66d5282c170606dedf1c912dca80",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\artemis\\voice.py"
+    },
+    {
+      "path": "desktop/app_launcher.py",
+      "sha256": "45a669bf3d24407945f523d15d51618c84aed9ecc12c6c4f9570b03148ce346a",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\app_launcher.py"
+    },
+    {
+      "path": "desktop/desktop_state.py",
+      "sha256": "2b4e09da15bc061004c6585ac4b20e627334dcdc2ff844050b7996b54eb0fd97",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\desktop_state.py"
+    },
+    {
+      "path": "desktop/everyday.py",
+      "sha256": "9b07f02f13248e9525371d7a659163e2c7addf64db3f670ba08a700c9c74ee5d",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\everyday.py"
+    },
+    {
+      "path": "desktop/main.py",
+      "sha256": "92eab316def3b73ebb6f5f7ed8f0bd6ae83de052af973090ac91a9b0f9e625fe",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\main.py"
+    },
+    {
+      "path": "desktop/server.py",
+      "sha256": "1ccc6d312c9f363df66a445f2dd27ddab8af9f6124bb8174eb0404885ec4978d",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\server.py"
+    },
+    {
+      "path": "desktop/speech_endpoint.py",
+      "sha256": "b2ee9e4e8bb9f86d36ed7ca2f9f816138ada44bff0495c369fa29bba1c364fa1",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\speech_endpoint.py"
+    },
+    {
+      "path": "desktop/speech_output.py",
+      "sha256": "2408853cc61083472595ab3ec5d21b6fc554462f0592c79b9db8e565924b9516",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\speech_output.py"
+    },
+    {
+      "path": "desktop/whisper_input.py",
+      "sha256": "7a47f9cc25e5ad53af49002306c4e524aabbfc5222807807a1853e2138af0d52",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\whisper_input.py"
+    },
+    {
+      "path": "desktop/assets/Artemis.ico",
+      "sha256": "e2d366f7ee8c270c3dff9fa40bdb56b6e16d2eec5733002613fc5eb032e0157d",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\assets\\Artemis.ico"
+    },
+    {
+      "path": "desktop/assets/design_reference.png",
+      "sha256": "6acdafdc0849d4847b1b20832e4c63a505a372031947bb39963361b80a0f69fc",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\assets\\design_reference.png"
+    },
+    {
+      "path": "desktop/assets/lunar_a_original.png",
+      "sha256": "4691f6ac97355b9c6a99a0b3dd5e633f100270e9befdc028bf8f035dd0bf1b37",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\assets\\lunar_a_original.png"
+    },
+    {
+      "path": "desktop/assets/lunar_a.png",
+      "sha256": "c649e7092cdf91142921fb486fde8cb7f062e3aa9f9445e8d5e41e57dc08fa7a",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\assets\\lunar_a.png"
+    },
+    {
+      "path": "desktop/assets/orb_native_fallback.png",
+      "sha256": "c3c50de5a45cf3e0a824156b8a124f11668e2bb0b09882fac1b0e1fbfda6bca4",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\assets\\orb_native_fallback.png"
+    },
+    {
+      "path": "desktop/web/antimatter-shader.js",
+      "sha256": "bf6aa2284b381f0033cebe31a33bb0b2a2bbf90cb180748c89e30427bc7a8731",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\antimatter-shader.js"
+    },
+    {
+      "path": "desktop/web/antimatter.css",
+      "sha256": "4a7287a217dbe8e74cabd5d6309b2c42cb95802dc7973d0be8813ab1c0d3d0fc",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\antimatter.css"
+    },
+    {
+      "path": "desktop/web/app-commands.css",
+      "sha256": "c63c1cdce0cb3c24b388b93051b0000b8f1d1d9831a550f5fbae32d6f71bf0e2",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\app-commands.css"
+    },
+    {
+      "path": "desktop/web/app-commands.js",
+      "sha256": "01bc3472fa56766b3b5ac4acf8f5c341f53fca2832e9c4d5af3c490ceb9ccd76",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\app-commands.js"
+    },
+    {
+      "path": "desktop/web/app.js",
+      "sha256": "678fc02c32b660b798b313457ba893079f3d0117203779bd87f1a87b14c7e139",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\app.js"
+    },
+    {
+      "path": "desktop/web/artemis-core.js",
+      "sha256": "2dfaa8338f83c6276b431529540c14c1262ed2303d5d12a7ab7639325dfbe192",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\artemis-core.js"
+    },
+    {
+      "path": "desktop/web/artemis-emblem.js",
+      "sha256": "052edcb530eccaddfb7d424750b3e289a844b5911d3507ede8d6a968d16a6c36",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\artemis-emblem.js"
+    },
+    {
+      "path": "desktop/web/artemis-identity.css",
+      "sha256": "2d2b803a380fe6f2c85c000229a027e76e85a217ae32d8c8158ab9d5993d416e",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\artemis-identity.css"
+    },
+    {
+      "path": "desktop/web/artemis-midnight.svg",
+      "sha256": "0649e899fc7aece95c2abb25f58653cf848635a62c1fe7462ba7322ac6f744a6",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\artemis-midnight.svg"
+    },
+    {
+      "path": "desktop/web/atelier.css",
+      "sha256": "f584ce093fc156e0ff20047a0510d02226c71c6c84f1ff1d373f5c6dffc3b6f6",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\atelier.css"
+    },
+    {
+      "path": "desktop/web/cosmic-ocean.png",
+      "sha256": "3e2a44b3a27dae3136de192d30bc7bd5bb004317fe3bbd4cc41441902fb613c8",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\cosmic-ocean.png"
+    },
+    {
+      "path": "desktop/web/cosmic-shader.js",
+      "sha256": "32adc3635d481f13f1d265cb3d973ee4b1d3b4a4f8bca7e195725f957e944168",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\cosmic-shader.js"
+    },
+    {
+      "path": "desktop/web/cosmic.css",
+      "sha256": "c00230f60f3912d0a4fbb781656b731327d560d18e5fa85e392966745e004449",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\cosmic.css"
+    },
+    {
+      "path": "desktop/web/daily.css",
+      "sha256": "e1b2773bf8cc3cee4215c1f2a3cf890f24cc45d947fee72dd86e0ecbdef5af6e",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\daily.css"
+    },
+    {
+      "path": "desktop/web/daily.js",
+      "sha256": "5d19220bd90f39c6766ccea9336bd06ea765a190f94d7d3917adc4f65332431b",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\daily.js"
+    },
+    {
+      "path": "desktop/web/dashboard_refresh.css",
+      "sha256": "58f60a106dfddfe9e53fe0933ad29174678b1f0053a3449474aa0b5af2486d94",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\dashboard_refresh.css"
+    },
+    {
+      "path": "desktop/web/handsfree.css",
+      "sha256": "bd8d05e37faa1d1813363e1aa3a1f6364a24949182b6cd18e0cb229692bf0e78",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\handsfree.css"
+    },
+    {
+      "path": "desktop/web/handsfree.js",
+      "sha256": "1d1aa18e61dc6110bb9efa726aa78776b72269757752880ffccfdaeccff88346",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\handsfree.js"
+    },
+    {
+      "path": "desktop/web/icon-mode.css",
+      "sha256": "b93b18dfc3357176512386ef4b71607b03764cd526c3f01a6f25be53c284de91",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\icon-mode.css"
+    },
+    {
+      "path": "desktop/web/icon-mode.js",
+      "sha256": "f859d1c8e5f9d036ded66403f4a5d70dea827104812cbe8e64210d767c918f28",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\icon-mode.js"
+    },
+    {
+      "path": "desktop/web/icon-reactive.css",
+      "sha256": "78941db8cf8e1ee06e20d823b55c669fb99740fed7f64a6b23645f6a1c91c8b5",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\icon-reactive.css"
+    },
+    {
+      "path": "desktop/web/index.html",
+      "sha256": "593cce5305c7fda4821080471db46f0a070decd5452aa65a03802daad0181ab4",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\index.html"
+    },
+    {
+      "path": "desktop/web/lunar-shader.js",
+      "sha256": "3bb68909c429663f2927f27d3f99a5c6536d01148f3e1af8d262945a02e2c488",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\lunar-shader.js"
+    },
+    {
+      "path": "desktop/web/lunar-sky.svg",
+      "sha256": "9cc2314991753be2e47ff52e766834581b101231a9011893703ff0fd403c8009",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\lunar-sky.svg"
+    },
+    {
+      "path": "desktop/web/lunar.css",
+      "sha256": "fb5d1d2d0acc7c2ce748379dc1d76539f87d8d997a3179254ba0ff2a5a7bec2b",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\lunar.css"
+    },
+    {
+      "path": "desktop/web/mini.css",
+      "sha256": "d550542d096facc8e563e13c0ed67df652ca8212eb49ba824ebaa5e5e2271138",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\mini.css"
+    },
+    {
+      "path": "desktop/web/mini.html",
+      "sha256": "8d8b8a54ea91e09567ce87663f6decba82d462699d36cbe6f85b5ac23b577303",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\mini.html"
+    },
+    {
+      "path": "desktop/web/mini.js",
+      "sha256": "10322ab133617d4490a717fc2894cf5e3e31a50a6d853bc634322f2567421706",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\mini.js"
+    },
+    {
+      "path": "desktop/web/premium.css",
+      "sha256": "4a125db896359c40d46789678e14aa75ef555410cb43e38e3957365782aa6dfc",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\premium.css"
+    },
+    {
+      "path": "desktop/web/quiet.css",
+      "sha256": "736d281a390ca68ee062d4b8034774efe92302ed9211272a2ebdf90681395f4e",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\quiet.css"
+    },
+    {
+      "path": "desktop/web/session.js",
+      "sha256": "5902921bf353204713d38b253bc404d481b0f1947b1f1a1a8938058726e93674",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\session.js"
+    },
+    {
+      "path": "desktop/web/shader.js",
+      "sha256": "cda646b56bf34d34ca6528c779a6bca1110be4f3c098429f25bf91b9b24ba500",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\shader.js"
+    },
+    {
+      "path": "desktop/web/styles.css",
+      "sha256": "224cd510b6ee641f828be52ecf40d4c71b292f8f4bd5ed8a9538548ee304df7b",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\styles.css"
+    },
+    {
+      "path": "desktop/web/ui_polish.css",
+      "sha256": "90127fe15cefae0ffe4b3621c649e4b421a5e8d5faec0a294bc88119b2fe8e43",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\ui_polish.css"
+    },
+    {
+      "path": "desktop/web/window-chrome.css",
+      "sha256": "3ad7bb68c50c182476b068b465a6fb1cdbb8f9c044044abaeaf1ae5eed56bc1b",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\window-chrome.css"
+    },
+    {
+      "path": "desktop/web/window-chrome.js",
+      "sha256": "bd8a40b49a2d6a6df4611ab2cfb496f7e89aff5502731a8c0007092ceb1f05b7",
+      "origin": "C:\\Users\\kanag\\Desktop\\Artemis\\desktop\\web\\window-chrome.js"
+    }
+  ]
+}

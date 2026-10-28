@@ -1,0 +1,38 @@
+/* Artemis Atelier: a solid, warm workspace. No atmosphere or image backdrop. */
+:root{color-scheme:light;--ink:#292b29;--muted:#71716b;--line:#d8d4ca;--paper:#f2efe8;--accent:#775e43}
+.app{height:100dvh;min-height:0;background:var(--paper);color:var(--ink)}
+.ambient,.grain,.atmosphere,.orb-visual{display:none!important}
+.topbar{height:108px;padding:24px 5vw;border-bottom:1px solid var(--line);margin:0 3vw;padding-left:2vw;padding-right:2vw}
+.logo{width:46px;height:46px;filter:none;border-radius:12px}
+.brand strong{font-size:17px;letter-spacing:.3em}.brand small{color:var(--muted);font-size:9px}
+.local-chip{color:#4b574f;background:transparent;border:1px solid #c9d0c4;backdrop-filter:none;font-size:9px}
+.local-chip i,.status i{background:#668770;box-shadow:none}
+.top-btn,.close{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none;backdrop-filter:none}
+.center{height:calc(100dvh - 108px);min-height:0;padding-bottom:95px;justify-content:center}
+.workspace-label{position:absolute;top:24px;left:5vw;right:5vw;display:flex;justify-content:space-between;font-size:9px;letter-spacing:.22em;color:#7c7b72}
+.workspace-label span{color:#a19a8b}
+.orb-stage{width:min(720px,88vw);height:clamp(175px,36vh,360px);flex-shrink:1;min-height:140px;transform-origin:50% 50%}
+.orb-fallback{background-size:contain;background-repeat:no-repeat;background-position:center}
+.orb-fallback[hidden]{display:none}
+.center h1{font-size:clamp(30px,3.6vw,49px);font-weight:400;letter-spacing:-.055em;margin:0 24px 12px;text-shadow:none;color:var(--ink)}
+.subhead{color:var(--muted);font-size:14px;line-height:1.6;max-width:650px;max-height:12vh;overflow:auto}
+.status{margin-top:18px;font-size:9px;letter-spacing:.19em;color:#62685e;border:0;padding:0}
+.dock{margin-top:26px;padding:8px 12px;gap:8px;border:1px solid #d1cbbf;background:#faf8f3;border-radius:20px;box-shadow:0 8px 24px #4d40280a;backdrop-filter:none}
+.dock-btn{width:46px;height:46px;color:#696a62;border-radius:12px}.dock-btn:hover{background:#e9e4d9;transform:translateY(-2px)}
+.dock-btn.mic{background:#756149;color:#fffaf0;box-shadow:none}.dock-btn.mic:hover{background:#604e3a}
+.dock-sep{background:var(--line);height:22px}.dock-btn svg{width:20px;height:20px}
+#voice-button.recording{background:#a7493b;color:#fff;box-shadow:0 0 0 5px #a7493b18}
+.workspace-footer{position:absolute;bottom:23px;left:5vw;right:5vw;border-top:1px solid var(--line);padding-top:18px;display:flex;gap:44px;color:#847d70;font-size:9px;letter-spacing:.15em}
+.workspace-footer b{display:block;font-size:11px;font-weight:400;letter-spacing:0;color:#65665f;margin-top:5px}.keyboard-hint{margin-left:auto;text-align:right}
+.sidepanel{background:#faf8f3;color:var(--ink);border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 80px #26231b29}
+.panel-head{border-color:var(--line)}.panel-head small,.settings-content h3{color:#8b7152}.panel-head h2{color:var(--ink)}
+.welcome p,.setting-item,.warning,.panel-foot{color:#727168}.welcome img{border-radius:16px}
+.bubble.user{background:#756149;color:white}.bubble.assistant{background:#eeebe3;color:var(--ink);border-color:#ded8cb}
+.composer{background:#fffefa;border-color:var(--line);border-radius:13px}.composer input{color:var(--ink)}.composer input::placeholder{color:#8a877f}.composer button{background:#756149;color:white}
+.panel-foot button{color:#756149}.settings-content label,.setting-item b{color:#474a43}.settings-content output{color:#87694a}.settings-content input[type=range]{accent-color:#756149}
+.setting-item{border-color:var(--line)}.warning{background:#eee9df;border-color:#d9cebc}.veil{background:#29261e30;backdrop-filter:blur(4px)}
+.toast{background:#34392f;color:#fff;border:0;box-shadow:0 8px 30px #29261e20;bottom:94px}
+button:focus-visible,input:focus-visible{outline-color:#87694a}
+@media(max-height:690px){.topbar{height:78px;padding-top:12px;padding-bottom:12px}.center{height:calc(100dvh - 78px);padding-top:40px;padding-bottom:77px}.orb-stage{height:29vh;min-height:110px}.center h1{font-size:32px;margin-bottom:7px}.dock{margin-top:16px}.status{margin-top:10px}.workspace-footer{bottom:15px;padding-top:10px}.workspace-label{top:15px}}
+@media(max-width:650px){.topbar{margin:0 20px;padding:14px 0;height:86px}.center{height:calc(100dvh - 86px)}.workspace-footer{gap:18px}.keyboard-hint{display:none}.workspace-label{font-size:8px}.brand strong{font-size:14px}.orb-stage{width:95vw}}
+@media(prefers-reduced-motion:reduce){.dock-btn,.sidepanel,.orb-stage{transition:none}}

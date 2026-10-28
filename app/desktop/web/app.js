@@ -193,6 +193,9 @@ async function sendArtemisMessage(msg, fromVoice=false){
       ? commandApi.handle_command(msg)
       : commandApi?.handle_app_command?.(msg));
     const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
+    if(/^(?:remind me\b|show reminders\b|list reminders\b|cancel reminder\b)/.test(toolText)&&local?.handled!==true){
+      throw Error('Reminders require the updated desktop app. No reminder has been scheduled.');
+    }
     if(/^(?:search documents\b|list documents\b|remove document\b)/.test(toolText)&&local?.handled!==true){
       throw Error('Document commands require the updated desktop app.');
     }

@@ -17,6 +17,7 @@ from everyday import Everyday
 from tool_router import Tool, ToolRouter
 from personal_memory import PersonalMemory
 from document_search import DocumentSearch
+from reminders import Reminders
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -26,7 +27,9 @@ class WindowBridge:
         self._everyday = Everyday()
         self._memory = PersonalMemory()
         self._documents = DocumentSearch()
+        self._reminders = Reminders()
         self._tools = ToolRouter([
+            Tool('reminders', 'Create, list and cancel persistent one-shot reminders', self._reminders.execute),
             Tool('documents', 'Search, list and remove explicitly indexed documents', self._documents.execute),
             Tool('memory', 'Explicitly save, list, search, edit and forget personal facts', self._memory.execute),
             Tool('everyday', 'Weather, local date/time, basic arithmetic and help', self._everyday.execute),
@@ -270,6 +273,14 @@ class WindowBridge:
 
     def list_tools(self):
         return self._tools.catalog()
+
+    def due_reminders(self):
+        try:return {'ok':True,'reminders':self._reminders.due()}
+        except Exception:return {'ok':False,'error':'Could not check reminders. Check the local reminders database.'}
+
+    def dismiss_reminder(self,reminder_id):
+        try:return {'ok':self._reminders.finish(reminder_id,'dismissed')}
+        except Exception:return {'ok':False,'error':'Could not dismiss this reminder.'}
 
     def choose_documents(self):
         if self._window is None:

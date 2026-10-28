@@ -38,6 +38,8 @@ with tempfile.TemporaryDirectory() as tmp:
     module.PersonalMemory=lambda:memory_factory(Path(tmp)/'memory.sqlite3')
     documents_factory=module.DocumentSearch
     module.DocumentSearch=lambda:documents_factory(Path(tmp)/'documents.sqlite3')
+    reminders_factory=module.Reminders
+    module.Reminders=lambda:reminders_factory(Path(tmp)/'reminders.sqlite3',clock=lambda:1800000000)
     b=module.WindowBridge()
     document=Path(tmp)/'notes.txt';document.write_text('A selected document about astronomy',encoding='utf-8')
     picker=Mock(return_value=[str(document)])
@@ -53,7 +55,10 @@ with tempfile.TemporaryDirectory() as tmp:
     assert b.handle_command('forget memory 1')['ok']
     assert b.handle_command('calculate 2 + 3')['reply'].endswith('5')
     assert b.handle_app_command('calculate 2 + 3') == b.handle_command('calculate 2 + 3')
-    assert [tool['name'] for tool in b.list_tools()] == ['documents', 'memory', 'everyday', 'apps']
+    assert [tool['name'] for tool in b.list_tools()] == ['reminders', 'documents', 'memory', 'everyday', 'apps']
+    assert b.handle_command('remind me in 1 minute to stretch')['ok']
+    assert b.due_reminders()=={'ok':True,'reminders':[]}
+    assert b.dismiss_reminder(1)['ok']
     assert b.start_listening()['ok'] is False
     assert b.speak_reply('Must not play')['ok'] is False
     assert b.set_speech_enabled(True)['ok'] is False

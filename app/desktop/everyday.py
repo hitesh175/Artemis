@@ -110,7 +110,7 @@ class Everyday:
         # Correct this common speech homophone only for a complete weather-like request.
         s=re.sub(r'^whether(?=\s+(?:today|tomorrow)\b)','weather',s)
         if s in ('help','what can you do','list commands','show commands','daily help'):
-            reply=HELP+' Personal memory: “remember that I prefer tea”, “show memories”, “find memories about tea”, “update memory 1: I prefer coffee”, or “forget memory 1”.'
+            reply=HELP+' Personal memory: “remember that I prefer tea”, “show memories”, “find memories about tea”, “update memory 1: I prefer coffee”, or “forget memory 1”. Reminders: “remind me in 10 minutes to stretch”, “show reminders”, or “cancel reminder 1”. Documents: “search documents for budget” or “list documents”; choose files in Settings first.'
         elif s in ('what time is it','whats the time',"what's the time",'tell me the time','current time'):
             reply='The local time is '+datetime.now().astimezone().strftime('%H:%M %Z')+'.'
         elif s in ("what's today's date",'whats todays date','what is the date','what is today date',"what is today's date",'what day is it','what date is it','today date',"what's the date",'today'):

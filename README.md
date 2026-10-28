@@ -63,7 +63,7 @@ Python environments and model weights. No install or deployment is performed.
 
 The shared deterministic tool interface is implemented in app/desktop/tool_router.py.
 The desktop bridge exposes handle_command and list_tools, retaining handle_app_command
-for compatibility. Tools run in order: document search, personal memory, everyday (weather, date/time,
+for compatibility. Tools run in order: reminders, document search, personal memory, everyday (weather, date/time,
 arithmetic, help), then apps. Unknown requests continue to chat; tool failures stop dispatch. Responses
 include handled, reply, spoken_reply, tool and sources, preserving existing choices
 and confirmation tokens. Existing tools default spoken_reply to their display text
@@ -76,7 +76,7 @@ multi-step task runner, or installation update has been introduced.
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Improve speech interruption and measure voice latency.
 3. Validate native desktop behavior and real-model citation quality.
-4. Persistent reminders and daily briefings.
+4. Daily briefings, building on persistent reminders.
 
 ## Streamed replies and service checks
 
@@ -177,3 +177,36 @@ or document actions are executed.
 
 PDF API reference: https://pypdf.readthedocs.io/en/stable/user/extract-text.html.
 The tests validate extraction and locations rather than rendered document layout.
+
+## Persistent reminders
+
+- `remind me in 10 minutes to stretch` creates a one-shot reminder. Minutes, hours
+  and days are supported; a day means 24 elapsed hours, not a calendar recurrence.
+- `remind me at 2026-10-29T09:00+01:00 to call Alex` uses an exact timestamp.
+  A UTC offset is required so an ambiguous clock time cannot be silently guessed.
+- `show reminders` lists active reminders, ten per page; `show reminders 2` continues.
+- `cancel reminder 1` cancels an active reminder. Dismiss in the visual inbox
+  acknowledges a due reminder. Cancelled/dismissed IDs are never reused.
+
+Creation replies show the due time in the computer's local timezone with its UTC
+offset. Reminders support future times within 366 days and 200 active reminders.
+They persist in app/data/reminders.sqlite3, excluded from Git and release packages.
+Ordinary conversation and model output cannot schedule reminders.
+
+The desktop checks for due reminders every five seconds and on regaining visibility.
+Up to ten due reminders appear in a persistent visual inbox; dismissing one lets
+the next appear. An item more than a minute late is labeled overdue, including after
+reopening. The inbox never starts speech or microphone capture, preserving Quiet
+mode. A reminder is not consumed by polling; it remains until dismissed or cancelled.
+The last 200 terminal records are retained; active reminders are never pruned.
+
+This version requires Artemis to remain running. It does not wake the computer,
+run while the app is closed, or send Windows notifications. Closed-app reminders
+are shown after reopening; minimized/background views may delay when you see them.
+One-shot reminders retain their exact instant if the computer timezone changes.
+There are no recurring reminders, automatic task execution or external messages.
+
+Tests cover timing boundaries, restart catch-up, persistence, acknowledgement,
+cancellation, concurrency, malformed dates, explicit offsets, visual inbox behavior
+and safe text rendering. Native desktop visibility and real-time notification
+delivery still need live verification. The installed application remains unchanged.

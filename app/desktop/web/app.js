@@ -183,6 +183,9 @@ async function sendArtemisMessage(msg, fromVoice=false){
       ? commandApi.handle_command(msg)
       : commandApi?.handle_app_command?.(msg));
     const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
+    if(/^(?:remember that\b|forget memory\b|update memory\b|show memories\b|list memories\b|find memories about\b)/.test(toolText)&&local?.handled!==true){
+      throw Error('Personal memory requires the updated desktop app. This request has not been saved or changed.');
+    }
     const weatherRequest=(/\b(?:weather|forecast)\b/.test(toolText)&&!(/\b(?:explain|code|work|works|history|documentary|video|movie|app|api|meaning|definition)\b/.test(toolText)))||/^(?:will it rain|is it raining|do i need (?:an? )?umbrella|should i take (?:an? )?umbrella)/.test(toolText);
     if(weatherRequest&&local?.handled!==true){
       throw Error('The desktop weather service did not handle this request. Close all Artemis windows and reopen Artemis.exe, then ask again.');

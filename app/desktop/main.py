@@ -15,6 +15,7 @@ from desktop_state import DesktopState
 from app_launcher import AppLauncher
 from everyday import Everyday
 from tool_router import Tool, ToolRouter
+from personal_memory import PersonalMemory
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -22,7 +23,9 @@ class WindowBridge:
         self._window = None
         self._apps = AppLauncher()
         self._everyday = Everyday()
+        self._memory = PersonalMemory()
         self._tools = ToolRouter([
+            Tool('memory', 'Explicitly save, list, search, edit and forget personal facts', self._memory.execute),
             Tool('everyday', 'Weather, local date/time, basic arithmetic and help', self._everyday.execute),
             Tool('apps', 'Explicit installed-app launch requests', self._apps.execute),
         ])

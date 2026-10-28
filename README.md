@@ -63,8 +63,8 @@ Python environments and model weights. No install or deployment is performed.
 
 The shared deterministic tool interface is implemented in app/desktop/tool_router.py.
 The desktop bridge exposes handle_command and list_tools, retaining handle_app_command
-for compatibility. Tools run in order: everyday (weather, date/time, arithmetic, help),
-then apps. Unknown requests continue to chat; tool failures stop dispatch. Responses
+for compatibility. Tools run in order: personal memory, everyday (weather, date/time,
+arithmetic, help), then apps. Unknown requests continue to chat; tool failures stop dispatch. Responses
 include handled, reply, spoken_reply, tool and sources, preserving existing choices
 and confirmation tokens. Existing tools default spoken_reply to their display text
 and sources to an empty list; structured source metadata can be supplied by future
@@ -75,7 +75,7 @@ multi-step task runner, or installation update has been introduced.
 
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Improve speech interruption and measure voice latency.
-3. Explicit personal memory and document search with citations.
+3. Document search with citations, building on explicit personal memory.
 4. Persistent reminders and daily briefings.
 
 ## Streamed replies and service checks
@@ -99,3 +99,30 @@ checks and a live model/voice session have not been performed for this change.
 
 ARCHITECTURE.md describes the earlier installed baseline. Its historical workspace
 section predates this consolidation; use app/ for current development.
+
+## Personal memory
+
+Memory is independent of saved conversations. Facts are saved only by explicit
+desktop commands; model responses and ordinary conversation cannot write facts.
+
+- `remember that I prefer tea` saves a fact and returns its ID.
+- `show memories` lists the first ten; `show memories 2` shows the next page.
+- `find memories about tea` finds up to ten keyword matches.
+- `update memory 1: I prefer coffee` edits a fact by ID.
+- `forget memory 1` removes it from future memory retrieval.
+
+Facts persist in app/data/personal-memory.sqlite3, excluded from Git and releases.
+The store supports 200 facts of up to 500 characters; duplicate facts reuse an ID.
+Clearing chat does not clear memory. Forgetting memory does not remove earlier chat
+messages, which may still be in recent context. Use Clear conversation as well when
+you want to remove that context. Memory is ordinary local SQLite storage, not encrypted.
+
+Local chat receives up to five keyword-matched facts (not semantic search). Facts
+are labeled user reference data, separated from the system instructions and latest
+question. The model is instructed to refer to used facts with `[Memory ID]`; actual
+model adherence has not yet been verified. Memory commands work directly without
+Ollama, including while Quiet mode is enabled. Saving a weather preference here
+does not change the weather tool's configured city; use Settings → Everyday for that.
+
+Tests use temporary databases and a fake model. Live desktop/model validation and
+installation are pending. This does not include document indexing or file search.

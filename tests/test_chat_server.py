@@ -7,11 +7,15 @@ import threading
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from unittest.mock import patch
+import tempfile
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'app/desktop'))
 import server
 
-host=server.make_server()
+temp=tempfile.TemporaryDirectory()
+memory=server.PersonalMemory(Path(temp.name)/'memory.sqlite3')
+memory.save('My preferred city is Berlin')
+host=server.make_server(memory=memory)
 thread=threading.Thread(target=host.serve_forever,daemon=True);thread.start()
 base='http://127.0.0.1:'+str(host.server_port)
 # Keep a real client function; patch only the server's upstream reference.
@@ -31,6 +35,15 @@ try:
             assert json.loads(upstream.call_args.args[0].data)['stream'] is True
     with patch.object(server.request,'urlopen',return_value=io.BytesIO(b'{"message":{"content":"Hello"}}')):
         assert json.load(post({'message':'hello'}))['reply']=='Hello'
+    with patch.object(server.request,'urlopen',return_value=io.BytesIO(b'{"message":{"content":"Berlin"}}')) as upstream:
+        json.load(post({'message':'what is my preferred city?'}))
+        messages=json.loads(upstream.call_args.args[0].data)['messages']
+        assert 'Berlin' in messages[-2]['content'] and messages[-2]['role']=='user'
+        assert messages[-1]['content']=='what is my preferred city?'
+    with patch.object(memory,'context',side_effect=OSError('unavailable')), patch.object(server.request,'urlopen') as upstream:
+        try:post({'message':'hello'});raise AssertionError('Unavailable memory accepted')
+        except HTTPError as error:assert error.code==503
+        upstream.assert_not_called()
     with patch.object(server.request,'urlopen') as upstream:
         try:post({'message':'hello','stream':'yes'});raise AssertionError('Invalid input accepted')
         except HTTPError as error:assert error.code==400
@@ -42,3 +55,4 @@ try:
     print('PASS: streamed HTTP, failure events, legacy replies, validation and model diagnostics')
 finally:
     host.shutdown();host.server_close();thread.join()
+    temp.cleanup()

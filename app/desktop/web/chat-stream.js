@@ -8,6 +8,7 @@ async function readArtemisStream(response, onText) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '', answer = '', completed = false;
+  let sources = [];
   try {
     while (!completed) {
       const {value, done} = await reader.read();
@@ -23,12 +24,12 @@ async function readArtemisStream(response, onText) {
           answer += event.delta;
           onText(answer);
         }
-        if (event.done === true) { completed = true; break; }
+        if (event.done === true) { sources = Array.isArray(event.sources) ? event.sources : []; completed = true; break; }
       }
       if (done && !completed) throw Error('Reply ended early. Please try again.');
     }
     if (!answer.trim()) throw Error('The model returned an empty reply.');
-    return {reply: answer};
+    return {reply: answer, sources};
   } finally {
     try { await reader.cancel(); } catch (_) { /* Already closed or cancelled. */ }
     reader.releaseLock();

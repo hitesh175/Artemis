@@ -153,6 +153,16 @@ $('orb-scale').addEventListener('input',e=>{let v=Number(e.target.value);documen
 $('reduce-motion').addEventListener('change',e=>{if(e.target.checked){speed=0;$('animation-speed').value=0;$('speed-value').textContent='0.0×'}else{$('animation-speed').value=100;speed=1;$('speed-value').textContent='1.0×'}});
 let history=[],busy=false;
 let activeReply=null;
+$('index-documents').addEventListener('click',async()=>{
+  const button=$('index-documents');button.disabled=true;
+  try{
+    const api=window.pywebview?.api;
+    if(!api?.choose_documents)throw Error('Open the updated desktop app to select documents.');
+    const result=await api.choose_documents();
+    $('document-status').textContent=result.reply;
+  }catch(err){$('document-status').textContent='Could not add documents: '+err.message;}
+  finally{button.disabled=false;}
+});
 $('stop-reply').addEventListener('click',()=>activeReply?.abort());
 $('check-services').addEventListener('click',async()=>{
   const button=$('check-services');button.disabled=true;
@@ -183,6 +193,9 @@ async function sendArtemisMessage(msg, fromVoice=false){
       ? commandApi.handle_command(msg)
       : commandApi?.handle_app_command?.(msg));
     const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
+    if(/^(?:search documents\b|list documents\b|remove document\b)/.test(toolText)&&local?.handled!==true){
+      throw Error('Document commands require the updated desktop app.');
+    }
     if(/^(?:remember that\b|forget memory\b|update memory\b|show memories\b|list memories\b|find memories about\b)/.test(toolText)&&local?.handled!==true){
       throw Error('Personal memory requires the updated desktop app. This request has not been saved or changed.');
     }
@@ -215,6 +228,16 @@ async function sendArtemisMessage(msg, fromVoice=false){
       }finally{clearTimeout(timer);activeReply=null;$('stop-reply').hidden=true;}
     }
     pending.textContent=data.reply;
+    if(!local?.handled && data.sources?.length){
+      const references=document.createElement('details');
+      const label=document.createElement('summary');label.textContent='Reference excerpts supplied to the model';references.appendChild(label);
+      for(const source of data.sources){
+        const excerpt=document.createElement('p');
+        excerpt.textContent=`[Document ${source.document_id}, line ${source.line_start}] ${source.path}\nIndexed ${source.indexed_at}\n${source.text}`;
+        references.appendChild(excerpt);
+      }
+      pending.appendChild(references);
+    }
     if(data.weather_choices){
       for(const choice of data.weather_choices){
         const button=document.createElement('button');button.className='app-confirm';button.textContent='Use '+choice.name;

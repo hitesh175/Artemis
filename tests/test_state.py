@@ -2,6 +2,8 @@ import importlib.util
 import tempfile
 from pathlib import Path
 import sys
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1].joinpath('app/desktop').resolve()))
 from desktop_state import DesktopState
 
@@ -34,13 +36,24 @@ with tempfile.TemporaryDirectory() as tmp:
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     memory_factory=module.PersonalMemory
     module.PersonalMemory=lambda:memory_factory(Path(tmp)/'memory.sqlite3')
+    documents_factory=module.DocumentSearch
+    module.DocumentSearch=lambda:documents_factory(Path(tmp)/'documents.sqlite3')
     b=module.WindowBridge()
+    document=Path(tmp)/'notes.txt';document.write_text('A selected document about astronomy',encoding='utf-8')
+    picker=Mock(return_value=[str(document)])
+    b._window=SimpleNamespace(create_file_dialog=picker)
+    with patch.dict(sys.modules,{'webview':SimpleNamespace(FileDialog=SimpleNamespace(OPEN=10))}):
+        assert b.choose_documents()['ok']
+        assert b.handle_command('search documents for astronomy')['sources'][0]['line_start']==1
+        picker.return_value=None
+        assert b.choose_documents()['reply']=='No files selected.'
+    b._window=None
     assert b.handle_command('remember that My preferred city is Berlin')['ok']
     assert 'Berlin' in b.handle_command('show memories')['reply']
     assert b.handle_command('forget memory 1')['ok']
     assert b.handle_command('calculate 2 + 3')['reply'].endswith('5')
     assert b.handle_app_command('calculate 2 + 3') == b.handle_command('calculate 2 + 3')
-    assert [tool['name'] for tool in b.list_tools()] == ['memory', 'everyday', 'apps']
+    assert [tool['name'] for tool in b.list_tools()] == ['documents', 'memory', 'everyday', 'apps']
     assert b.start_listening()['ok'] is False
     assert b.speak_reply('Must not play')['ok'] is False
     assert b.set_speech_enabled(True)['ok'] is False

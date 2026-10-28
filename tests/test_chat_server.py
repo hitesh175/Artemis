@@ -15,7 +15,8 @@ import server
 temp=tempfile.TemporaryDirectory()
 memory=server.PersonalMemory(Path(temp.name)/'memory.sqlite3')
 memory.save('My preferred city is Berlin')
-host=server.make_server(memory=memory)
+documents=server.DocumentSearch(Path(temp.name)/'documents.sqlite3')
+host=server.make_server(memory=memory,documents=documents)
 thread=threading.Thread(target=host.serve_forever,daemon=True);thread.start()
 base='http://127.0.0.1:'+str(host.server_port)
 # Keep a real client function; patch only the server's upstream reference.
@@ -52,6 +53,14 @@ try:
         fake=io.BytesIO(json.dumps({'models':[{'name':n} for n in names]}).encode())
         with patch.object(server.request,'urlopen',return_value=fake):
             assert json.load(urlopen(base+'/api/diagnostics'))['model']==expected
+    document=Path(temp.name)/'budget.txt'
+    document.write_text('Budget approved: 250 euros',encoding='utf-8')
+    documents.index(document)
+    with patch.object(server.request,'urlopen',return_value=io.BytesIO(b'{"message":{"content":"250 euros [Document 1, line 1]"}}')) as upstream:
+        response=json.load(post({'message':'What budget was approved?'}))
+        assert response['sources'][0]['path']==str(document.resolve())
+        messages=json.loads(upstream.call_args.args[0].data)['messages']
+        assert messages[-2]['role']=='user' and '250 euros' in messages[-2]['content']
     print('PASS: streamed HTTP, failure events, legacy replies, validation and model diagnostics')
 finally:
     host.shutdown();host.server_close();thread.join()

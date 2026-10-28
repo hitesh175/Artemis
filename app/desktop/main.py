@@ -16,6 +16,7 @@ from app_launcher import AppLauncher
 from everyday import Everyday
 from tool_router import Tool, ToolRouter
 from personal_memory import PersonalMemory
+from document_search import DocumentSearch
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -24,7 +25,9 @@ class WindowBridge:
         self._apps = AppLauncher()
         self._everyday = Everyday()
         self._memory = PersonalMemory()
+        self._documents = DocumentSearch()
         self._tools = ToolRouter([
+            Tool('documents', 'Search, list and remove explicitly indexed documents', self._documents.execute),
             Tool('memory', 'Explicitly save, list, search, edit and forget personal facts', self._memory.execute),
             Tool('everyday', 'Weather, local date/time, basic arithmetic and help', self._everyday.execute),
             Tool('apps', 'Explicit installed-app launch requests', self._apps.execute),
@@ -267,6 +270,25 @@ class WindowBridge:
 
     def list_tools(self):
         return self._tools.catalog()
+
+    def choose_documents(self):
+        if self._window is None:
+            return {'ok':False,'reply':'The desktop window is not ready.'}
+        import webview
+        paths=self._window.create_file_dialog(webview.FileDialog.OPEN,allow_multiple=True,
+                                             file_types=('Text and Markdown (*.txt;*.md)',))
+        if not paths:return {'ok':True,'reply':'No files selected.'}
+        results=[]
+        ok=True
+        for path in paths[:50]:
+            try:
+                document_id=self._documents.index(path)
+                results.append('Indexed document '+str(document_id)+': '+Path(path).name)
+            except Exception as exc:
+                ok=False
+                results.append('Could not index '+Path(path).name+': '+str(exc))
+        if len(paths)>50:results.append('Only the first 50 selected files were processed.');ok=False
+        return {'ok':ok,'reply':'\n'.join(results)}
 
     def find_weather_locations(self, query):
         return self._everyday.find(query)

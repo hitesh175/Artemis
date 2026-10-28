@@ -11,6 +11,8 @@ function response(parts) {
   const updates=[];
   assert.equal((await readArtemisStream(response([...bytes].map(b=>Uint8Array.of(b))),text=>updates.push(text))).reply,'Héllo world');
   assert.deepEqual(updates,['Héllo','Héllo world']);
+  const referenced = await readArtemisStream(response([new TextEncoder().encode('{"delta":"Answer"}\n{"done":true,"sources":[{"document_id":1,"line_start":2}]}\n')]),()=>{});
+  assert.equal(referenced.sources[0].document_id,1);
   for(const body of ['{"delta":"partial"}\n','{"error":"failed"}\n','{"done":true}\n','invalid\n']) {
     await assert.rejects(()=>readArtemisStream(response([new TextEncoder().encode(body)]),()=>{}));
   }

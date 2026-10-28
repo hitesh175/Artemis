@@ -63,7 +63,7 @@ Python environments and model weights. No install or deployment is performed.
 
 The shared deterministic tool interface is implemented in app/desktop/tool_router.py.
 The desktop bridge exposes handle_command and list_tools, retaining handle_app_command
-for compatibility. Tools run in order: personal memory, everyday (weather, date/time,
+for compatibility. Tools run in order: document search, personal memory, everyday (weather, date/time,
 arithmetic, help), then apps. Unknown requests continue to chat; tool failures stop dispatch. Responses
 include handled, reply, spoken_reply, tool and sources, preserving existing choices
 and confirmation tokens. Existing tools default spoken_reply to their display text
@@ -75,7 +75,7 @@ multi-step task runner, or installation update has been introduced.
 
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Improve speech interruption and measure voice latency.
-3. Document search with citations, building on explicit personal memory.
+3. Extend document search to PDF/Word with tested extraction.
 4. Persistent reminders and daily briefings.
 
 ## Streamed replies and service checks
@@ -125,4 +125,36 @@ Ollama, including while Quiet mode is enabled. Saving a weather preference here
 does not change the weather tool's configured city; use Settings → Everyday for that.
 
 Tests use temporary databases and a fake model. Live desktop/model validation and
-installation are pending. This does not include document indexing or file search.
+installation are pending.
+
+## Document search
+
+Settings → Documents → Choose files to index opens the native file picker. Only
+selected UTF-8 .txt/.md files are indexed; there is no folder scan or file watcher.
+The limit is 50 files of 200 KB each, with up to 5,000 nonblank line chunks per file.
+PDF, Word, scanned documents and other encodings are not supported in this version.
+
+- `search documents for budget` returns up to three matching excerpts with file
+  paths, document IDs, and original line numbers. This works without Ollama.
+- `list documents` lists indexed IDs and paths; `list documents 2` shows page two.
+- `remove document 1` deletes that snapshot from the index, keeping the source file.
+- Choose the same file again to refresh its snapshot while preserving its ID.
+
+The ordinary local chat request also retrieves up to three matching excerpts using
+SQLite FTS5 keyword search. Excerpts are supplied as reference data, with instructions
+to cite `[Document ID, line N]`. An expandable reference section shows the actual
+excerpts supplied to the model, including paths and indexing times; it does not
+claim the model used every excerpt or verified its answer. Model citation accuracy
+still requires live validation. Stored document text cannot invoke desktop tools.
+
+app/data/documents.sqlite3 contains ordinary unencrypted local snapshots, excluded
+from Git and release packages. No files are sent to a cloud service; selected
+excerpts are passed to local Ollama. Removing an index does not erase excerpts or
+answers already retained in chat; clear the conversation to remove that context.
+Search uses indexed snapshots even if the original changes or disappears. Re-index
+or remove the document explicitly when appropriate.
+
+Automated tests cover indexing, line citations, refresh, persistence, removals,
+format/size limits, query escaping, a simulated picker and model context transport.
+The native picker UI, desktop layout, and real-model citation behavior have not
+been tested live. Changes remain in development source; the installed app is unchanged.

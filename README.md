@@ -76,7 +76,7 @@ or multi-step task runner has been introduced.
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Use session timings to target voice delays and improve turn detection.
 3. Validate native desktop behavior and real-model citation quality.
-4. Optional scheduled briefings and calendar integration after on-demand validation.
+4. Calendar integration after validating the optional local briefing schedule.
 
 ## Streamed replies and service checks
 
@@ -238,8 +238,8 @@ follows the normal speech setting and Quiet mode. Missing city configuration pro
 you to set it. Weather or reminder failures are reported independently, preserving
 the other available section. Reminder failure is never presented as an empty list.
 
-Briefings run only when requested. They do not start on launch, run on a schedule,
-connect email or calendars, or invent news. Local date/reminder summaries work
+On-demand briefings run when requested. Optional scheduling is described below.
+Briefings do not connect email or calendars or invent news. Local date/reminder summaries work
 without Ollama; weather still needs internet. Tests cover date boundaries, partial
 failure, source attribution and reminder preservation, plus the installed button.
 
@@ -344,5 +344,42 @@ The panel is installed. Backup:
 Automated checks cover bounded/concurrent collection, content exclusion, outcome
 averages and instrumentation. Installed WebView2 verification refreshes the panel
 after a real streamed reply, with microphone and audible speech disabled.
+
+## Optional scheduled briefings
+
+Settings → Scheduled daily briefing has an enable checkbox and a local 24-hour
+time. Choose both and click Save briefing schedule. It is off by default, and the
+installation does not enable it. Time is interpreted in the computer's local
+timezone rather than as a fixed UTC offset.
+
+While Artemis is running, the page checks every 30 seconds and on regaining
+visibility. Once due, it prepares the existing weather/reminder briefing and shows
+a silent expandable Daily briefing ready notice. It never starts microphone input
+or speech, including when Quiet mode is off. The notice contains the snapshot date
+and remains until dismissed or replaced by a newer day's briefing. Disabling the
+schedule removes the pending notice; re-enabling does not repeat a date already
+prepared. Changing the time after preparation applies to the following day.
+
+Schedule settings and the latest pending snapshot persist in
+app/data/briefing-schedule.sqlite3, excluded from Git and releases. Reopening after
+the chosen time prepares the current day's briefing. Missed days are not replayed
+as a backlog. A previous pending snapshot may remain visible before today's due
+time and is labeled with its date. A partial weather/reminder result is saved as
+that day's snapshot; use daily briefing manually to refresh it. Generation failures
+without a usable result are retried on the next check.
+
+The app must be open: this does not install a Windows scheduled task, wake the
+computer, run in the background after exit, or send system notifications. Background
+WebView throttling can delay checks. A DST-skipped time runs on the next check;
+repeated hours do not duplicate the date. Clock/date rollback does not reissue a
+previously prepared date. Clearing conversation does not delete the schedule.
+
+Tests cover disabled defaults, due-time boundaries, concurrent checks, persistence,
+dismissal, catch-up, clock rollback and retry. Installed WebView2 verification uses
+temporary settings to enable, display and dismiss a briefing without sound. The
+user's real schedule remains off.
+
+Installed rollback backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-174938`.
 
 

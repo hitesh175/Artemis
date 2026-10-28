@@ -21,6 +21,7 @@ from reminders import Reminders
 from daily_briefing import DailyBriefing
 from model_settings import ModelSettings
 from performance_log import PERFORMANCE
+from briefing_schedule import BriefingSchedule
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -33,6 +34,7 @@ class WindowBridge:
         self._reminders = Reminders()
         self._models = ModelSettings()
         self._briefing = DailyBriefing(self._everyday,self._reminders)
+        self._briefing_schedule = BriefingSchedule(self._briefing)
         self._tools = ToolRouter([
             Tool('briefing', 'On-demand weather and reminder summary for today', self._briefing.execute),
             Tool('reminders', 'Create, list and cancel persistent one-shot reminders', self._reminders.execute),
@@ -283,6 +285,23 @@ class WindowBridge:
 
     def list_tools(self):
         return self._tools.catalog()
+
+    def get_briefing_schedule(self):
+        try:return {'ok':True,**self._briefing_schedule.get()}
+        except Exception:return {'ok':False,'error':'Could not read the briefing schedule.'}
+
+    def set_briefing_schedule(self,enabled,at):
+        try:return {'ok':True,**self._briefing_schedule.configure(enabled,at)}
+        except ValueError as exc:return {'ok':False,'error':str(exc)}
+        except Exception:return {'ok':False,'error':'Could not save the briefing schedule.'}
+
+    def check_scheduled_briefing(self):
+        try:return {'ok':True,**self._briefing_schedule.check()}
+        except Exception:return {'ok':False,'error':'Could not prepare the scheduled briefing. The next check will retry.'}
+
+    def dismiss_scheduled_briefing(self,date):
+        try:return {'ok':self._briefing_schedule.dismiss(date)}
+        except Exception:return {'ok':False,'error':'Could not dismiss this briefing.'}
 
     def get_performance(self):
         return {'ok':True,**PERFORMANCE.snapshot()}

@@ -24,6 +24,8 @@ main.DocumentSearch=isolated(main.DocumentSearch,'documents.sqlite3')
 main.Reminders=isolated(main.Reminders,'reminders.sqlite3')
 main.Everyday=isolated(main.Everyday,'weather.json')
 main.ModelSettings=isolated(main.ModelSettings,'models.sqlite3')
+schedule_factory=main.BriefingSchedule
+main.BriefingSchedule=lambda briefing:schedule_factory(briefing,temp/'schedule.sqlite3')
 bridge=main.WindowBridge()
 bridge._mini_file=temp/'mini.json'
 http=server.make_server(memory=bridge._memory,documents=bridge._documents,model_settings=bridge._models)
@@ -42,6 +44,22 @@ def verify():
         assert window.evaluate_js('window.ArtemisSession.ready')
         assert window.evaluate_js('window.ArtemisSession.quiet')
         assert not window.evaluate_js('window.ArtemisHandsfree.enabled')
+        for _ in range(30):
+            if window.evaluate_js("!document.getElementById('save-briefing-schedule').disabled"):break
+            time.sleep(.1)
+        assert not bridge.get_briefing_schedule()['enabled']
+        window.evaluate_js("document.getElementById('schedule-briefing-enabled').checked=true;document.getElementById('schedule-briefing-time').value='00:00';document.getElementById('save-briefing-schedule').click()")
+        for _ in range(60):
+            if window.evaluate_js("!document.getElementById('scheduled-briefing-notice').hidden"):break
+            time.sleep(.1)
+        assert window.evaluate_js("document.getElementById('scheduled-briefing-notice').textContent.includes('Your daily briefing')")
+        window.evaluate_js("document.querySelector('#scheduled-briefing-notice button').click()")
+        for _ in range(30):
+            if window.evaluate_js("document.getElementById('scheduled-briefing-notice').hidden"):break
+            time.sleep(.1)
+        assert not bridge.get_briefing_schedule()['pending']
+        bridge.set_briefing_schedule(False,'09:00')
+        outcome['scheduled_briefing']=True
         assert bridge._voice._thread is None
         assert window.evaluate_js("['index-documents','check-services','stop-reply','reminder-inbox'].every(id=>Boolean(document.getElementById(id)))")
         assert window.evaluate_js("typeof readArtemisStream==='function'")

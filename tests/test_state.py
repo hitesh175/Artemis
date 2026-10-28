@@ -42,7 +42,11 @@ with tempfile.TemporaryDirectory() as tmp:
     module.Reminders=lambda:reminders_factory(Path(tmp)/'reminders.sqlite3',clock=lambda:1800000000)
     models_factory=module.ModelSettings
     module.ModelSettings=lambda:models_factory(Path(tmp)/'models.sqlite3')
+    schedule_factory=module.BriefingSchedule
+    module.BriefingSchedule=lambda briefing:schedule_factory(briefing,Path(tmp)/'schedule.sqlite3')
     b=module.WindowBridge()
+    assert not b.get_briefing_schedule()['enabled']
+    assert not b.set_briefing_schedule(True,'25:00')['ok']
     with patch.object(b._models,'available',return_value=['artemis:latest','example:small']):
         assert b.get_ollama_models()['selected']=='artemis'
         assert b.select_ollama_model('example:small')['ok']

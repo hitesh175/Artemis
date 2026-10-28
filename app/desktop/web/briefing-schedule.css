@@ -1,0 +1,5 @@
+#scheduled-briefing-notice { position:fixed; z-index:175; bottom:16px; left:16px; width:min(400px,calc(100vw - 32px)); max-height:45vh; overflow:auto; padding:12px; border:1px solid #72978d; border-radius:12px; background:#152525; color:#edf5f2; }
+#scheduled-briefing-notice[hidden] { display:none; }
+#scheduled-briefing-notice summary { cursor:pointer; }
+#scheduled-briefing-notice p { white-space:pre-wrap; overflow-wrap:anywhere; }
+#scheduled-briefing-notice button { padding:8px 12px; border-radius:8px; background:#304b46; color:#edf5f2; border:1px solid #72978d; }

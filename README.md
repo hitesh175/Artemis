@@ -297,4 +297,19 @@ Installed rollback backup:
 `C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-173550`.
 Output API reference: https://python-sounddevice.readthedocs.io/en/0.5.3/api/streams.html.
 
+## Real-use quality check
+
+scripts/check-real-use.py runs installed-model checks with isolated invented facts
+and documents, then enumerates devices and performs in-memory Kokoro-to-Whisper
+transcription. It never opens microphone capture or audible playback and does not
+execute the synthesized commands. On 28 October 2026, recall/edit/deletion checks,
+document answer/citation, a missing fact, an embedded-instruction case, and two
+silent speech round trips passed. Results and latency samples are in
+output/real-use-checks.json and output/real-use-summary.md.
+
+This is limited sample evidence rather than a general accuracy/security guarantee.
+Manual microphone input, accent/noise conditions and audible conversation quality
+still require user-initiated testing in the running app. The quality check does not
+modify or restart the installed application.
+
 

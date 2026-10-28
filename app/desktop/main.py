@@ -266,6 +266,10 @@ class WindowBridge:
             return {'ok': False, 'error': 'Speech output is muted'}
         return self._speech.speak(text)
 
+    def stop_speaking(self):
+        self.set_handsfree(False)
+        return self._speech.stop()
+
     def load_desktop_state(self):
         return {'ok': True, **self._saved.load()}
 

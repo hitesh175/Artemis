@@ -70,6 +70,8 @@ with tempfile.TemporaryDirectory() as tmp:
     assert b.start_listening()['ok'] is False
     assert b.speak_reply('Must not play')['ok'] is False
     assert b.set_speech_enabled(True)['ok'] is False
+    assert b.stop_speaking()['ok']
+    assert not b._handsfree_enabled
     assert b.speech_status()['enabled'] is False
     saved=b.load_desktop_state();saved['preferences']['speed']=80
     assert b.save_desktop_state(saved)['ok'] is True

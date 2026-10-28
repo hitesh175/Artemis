@@ -130,21 +130,32 @@ async function speechPoll(){
   if(!api?.speech_status)return;
   try{
     const v=await api.speech_status();
+    $('stop-speaking').hidden=!v.playing;
+    $('stop-speaking').disabled=Boolean(v.stopping);
+    $('stop-speaking').textContent=v.stopping?'Stopping speech…':'Stop speaking';
     speechOn=Boolean(v.enabled);updateSpeechButton();
     if(v.revision!==speechRevision){
       speechRevision=v.revision;
       if(v.error)popup('Voice: '+v.error);
-      if(v.playing){setState('speaking');$('headline').textContent='Speaking…';$('subhead').textContent=history.length ? history[history.length-1].content : 'Isabella is answering.'; $('status-label').textContent='SPEAKING'}
+      if(v.playing){setState('speaking');$('headline').textContent=v.stopping?'Stopping speech…':'Speaking…';$('subhead').textContent=history.length ? history[history.length-1].content : 'Isabella is answering.'; $('status-label').textContent=v.stopping?'STOPPING':'SPEAKING'}
       else if(!busy && !$('voice-button').classList.contains('recording'))setState('idle');
     }
   }catch(err){console.error('Speech status',err)}
 }
 setInterval(speechPoll,300);
+$('stop-speaking').addEventListener('click',async()=>{
+  try{
+    await window.ArtemisHandsfree?.stop('Speech stopped. Start hands-free when ready.');
+    const result=await window.pywebview?.api?.stop_speaking?.();
+    if(!result?.ok)throw Error(result?.error||'Speech control requires the updated desktop app.');
+    await speechPoll();
+  }catch(error){popup('Voice: '+error.message);}
+});
 $('sound-button').addEventListener('click',async()=>{
   if(window.ArtemisSession?.quiet!==false){popup('Quiet mode keeps Isabella muted.');return}
   const api=window.pywebview?.api;
   if(!api?.set_speech_enabled){popup('Voice playback needs the Windows WebView2 app.');return}
-  try{const result=await api.set_speech_enabled(!speechOn);if(!result?.ok)throw Error(result?.error||'Voice toggle failed');speechOn=result.enabled;window.ArtemisSession?.setSpeechPreference(speechOn);updateSpeechButton();popup(speechOn?'Isabella enabled':'Isabella muted (current audio may finish).')}
+  try{const result=await api.set_speech_enabled(!speechOn);if(!result?.ok)throw Error(result?.error||'Voice toggle failed');speechOn=result.enabled;window.ArtemisSession?.setSpeechPreference(speechOn);updateSpeechButton();popup(speechOn?'Isabella enabled':'Isabella muted; current speech is stopping.')}
   catch(err){popup('Voice: '+err.message)}
 });
 updateSpeechButton();

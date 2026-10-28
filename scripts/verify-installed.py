@@ -45,6 +45,28 @@ def verify():
         assert bridge._voice._thread is None
         assert window.evaluate_js("['index-documents','check-services','stop-reply','reminder-inbox'].every(id=>Boolean(document.getElementById(id)))")
         assert window.evaluate_js("typeof readArtemisStream==='function'")
+        # Exercise the real stop control with synthetic synthesis, without sound.
+        from types import SimpleNamespace
+        speech_started=threading.Event()
+        def synthetic_say(text,cancel_event):
+            speech_started.set()
+            if not cancel_event.wait(5):raise RuntimeError('Speech cancellation did not arrive')
+        bridge._speech.speaker=SimpleNamespace(kokoro=object(),say=synthetic_say)
+        bridge._speech.set_enabled(True)
+        assert bridge._speech.speak('Silent cancellation test')['ok']
+        assert speech_started.wait(2)
+        for _ in range(20):
+            if window.evaluate_js("!document.getElementById('stop-speaking').hidden"):break
+            time.sleep(.1)
+        assert window.evaluate_js("!document.getElementById('stop-speaking').hidden")
+        window.evaluate_js("document.getElementById('stop-speaking').click()")
+        for _ in range(30):
+            if not bridge._speech.status()['playing']:break
+            time.sleep(.1)
+        assert not bridge._speech.status()['playing']
+        assert not bridge._speech.status()['error']
+        bridge._speech.set_enabled(False)
+        outcome['stop_speaking']=True
         window.evaluate_js("document.getElementById('refresh-models').click()")
         for _ in range(60):
             if window.evaluate_js("!document.getElementById('refresh-models').disabled"):break

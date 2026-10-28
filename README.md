@@ -74,7 +74,7 @@ The completed features are now installed locally. No model-selected tool executi
 or multi-step task runner has been introduced.
 
 1. Bounded task execution after tool permissions and cancellation are designed.
-2. Improve speech interruption and measure voice latency.
+2. Measure voice latency and improve turn detection after speech-interruption validation.
 3. Validate native desktop behavior and real-model citation quality.
 4. Optional scheduled briefings and calendar integration after on-demand validation.
 
@@ -270,5 +270,31 @@ Installed update backup:
 Automated checks cover persistence, next-request model routing, invalid and missing
 models, offline preservation, corrupt settings, and selector behavior. Installed
 WebView2 checks use isolated settings so the user's selection is not changed.
+
+## Stop speaking
+
+During speech generation or playback, a floating Stop speaking button appears in
+Full, Mini and compact views. It cancels the active speech turn and pauses
+hands-free mode. It leaves the displayed reply and saved chat intact and does not
+disable spoken replies for future turns. Quiet mode and muting speech now cancel
+an active turn as well, rather than allowing its audio to finish.
+
+Cancellation is checked before and after synthesis and between 1,024-frame output
+blocks. Playback uses an owned OutputStream, so stopping Artemis does not call the
+global sounddevice stop function. An in-progress model load or synthesis call may
+finish its computation; its cancelled audio is discarded before playback. During
+that interval the UI shows Stopping speech and blocks another speech worker. No
+wake word, voice interruption command or acoustic echo cancellation is introduced.
+Stop reply still cancels text generation; Stop speaking controls speech separately.
+
+Automated tests cover mono/stereo playback abort, cancellation during synthesis,
+worker isolation, retry and mute interruption. The installed native button was
+verified with simulated speech. A silent zero-sample test also opened the real
+installed audio output and cancelled it in 0.24 seconds; no microphone or audible
+speech was used. This does not validate recognition or full speech quality.
+
+Installed rollback backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-173550`.
+Output API reference: https://python-sounddevice.readthedocs.io/en/0.5.3/api/streams.html.
 
 

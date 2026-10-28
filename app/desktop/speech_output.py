@@ -17,15 +17,18 @@ class SpeechOutput:
         self.error = ''
         self.revision = 0
         self.speaker = None
+        self._cancel = threading.Event()
 
     def status(self):
         with self.lock:
             return {'enabled': self.enabled, 'playing': self.playing,
+                    'stopping': self.playing and self._cancel.is_set(),
                     'error': self.error, 'revision': self.revision}
 
     def set_enabled(self, enabled):
         with self.lock:
             self.enabled = bool(enabled)
+            if not self.enabled:self.stop()
             self.revision += 1
             return {'ok': True, **self.status()}
 
@@ -38,9 +41,11 @@ class SpeechOutput:
             if self.playing:
                 return {'ok': False, 'error': 'Isabella is already speaking'}
             self.playing = True
+            self._cancel = threading.Event()
+            cancel = self._cancel
             self.error = ''
             self.revision += 1
-        threading.Thread(target=self._run, args=(text,), daemon=True).start()
+        threading.Thread(target=self._run, args=(text,cancel), daemon=True).start()
         return {'ok': True}
 
     def clear_error(self):
@@ -49,17 +54,25 @@ class SpeechOutput:
                 self.error = ''
                 self.revision += 1
 
-    def _run(self, text):
+    def stop(self):
+        with self.lock:
+            self._cancel.set()
+            self.revision += 1
+            return {'ok':True, **self.status()}
+
+    def _run(self, text, cancel):
         try:
+            if cancel.is_set():return
             if self.speaker is None:
                 from artemis.voice import Speaker
                 self.speaker = Speaker(enabled=True)
             if getattr(self.speaker, 'kokoro', None) is None and getattr(self.speaker, 'piper', None) is None:
                 raise RuntimeError('No offline speech engine available. Check voice_test models or Piper fallback.')
-            self.speaker.say(text)
+            if cancel.is_set():return
+            self.speaker.say(text,cancel_event=cancel)
         except Exception as exc:
             with self.lock:
-                self.error = str(exc)
+                self.error = '' if cancel.is_set() else str(exc)
                 # Recreate the engine on an explicit retry after a failed initialization/playback.
                 self.speaker = None
             print('[ARTEMIS Desktop speech]', exc, flush=True)

@@ -56,15 +56,27 @@ def _output_device():
     return int(choice) if choice.isdigit() else (choice or None)
 
 
-def _play(samples, rate):
+def _play(samples, rate, cancel_event=None):
     import numpy as np
     import sounddevice as sd
     audio = np.asarray(samples, dtype=np.float32)
     if not audio.size:
         raise RuntimeError('Speech engine generated empty audio')
+    cancel_event = cancel_event or threading.Event()
+    if audio.ndim == 1:
+        audio = audio.reshape(-1, 1)
+    if audio.ndim != 2:
+        raise RuntimeError('Unsupported speech audio shape')
     with _PLAY_LOCK:
-        sd.play(audio, samplerate=int(rate), device=_output_device(), blocking=True)
-        sd.stop()
+        if cancel_event.is_set():return
+        # Own the stream: cancelling Artemis must not stop unrelated application audio.
+        with sd.OutputStream(samplerate=int(rate), channels=audio.shape[1], dtype='float32',
+                             device=_output_device(), blocksize=1024) as stream:
+            for start in range(0, len(audio), 1024):
+                if cancel_event.is_set():
+                    stream.abort();return
+                stream.write(audio[start:start+1024])
+            if cancel_event.is_set():stream.abort()
 
 
 class Speaker:
@@ -111,7 +123,9 @@ class Speaker:
         # Do not disguise the absence of both requested offline engines.
         print('[Voice] Neither Kokoro nor Piper could be loaded.', flush=True)
 
-    def say(self, message):
+    def say(self, message, cancel_event=None):
+        cancel_event = cancel_event or threading.Event()
+        if cancel_event.is_set():return
         text = spoken_text(message)
         if not text:
             return
@@ -120,12 +134,15 @@ class Speaker:
             try:
                 # One clip for each answer; no stop/start gaps between sentences.
                 with _LOAD_LOCK:
+                    if cancel_event.is_set():return
                     start = time.perf_counter()
                     audio, rate = self.kokoro.create(text, voice=KOKORO_VOICE, speed=1.04, lang='en-gb')
                     print(f'[Voice] Kokoro synthesized in {time.perf_counter()-start:.2f}s', flush=True)
-                _play(audio, rate)
+                if cancel_event.is_set():return
+                _play(audio, rate, cancel_event)
                 return
             except Exception as exc:
+                if cancel_event.is_set():return
                 print(f'[Voice] Kokoro synthesis/playback failed: {exc}', flush=True)
                 # Retry using Piper if possible, even if Kokoro initially loaded.
                 self.kokoro = None
@@ -134,6 +151,7 @@ class Speaker:
         if self.piper is not None:
             import numpy as np
             with _LOAD_LOCK:
+                if cancel_event.is_set():return
                 out = io.BytesIO()
                 cfg = self._piper_config_cls(length_scale=1.0)
                 with wave.open(out, 'wb') as wav:
@@ -147,7 +165,8 @@ class Speaker:
                 audio=np.frombuffer(raw, dtype='<i2').astype(np.float32) / 32768.0
                 if channels>1:
                     audio=audio.reshape(-1,channels)
-            _play(audio,rate)
+            if cancel_event.is_set():return
+            _play(audio,rate,cancel_event)
             return
         raise RuntimeError('No offline speech engine available. Install kokoro-onnx and put both model files in voice_test.')
 

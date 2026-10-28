@@ -233,7 +233,7 @@ async function sendArtemisMessage(msg, fromVoice=false){
       const label=document.createElement('summary');label.textContent='Reference excerpts supplied to the model';references.appendChild(label);
       for(const source of data.sources){
         const excerpt=document.createElement('p');
-        excerpt.textContent=`[Document ${source.document_id}, line ${source.line_start}] ${source.path}\nIndexed ${source.indexed_at}\n${source.text}`;
+        excerpt.textContent=`[Document ${source.document_id}, ${source.locator || 'line '+source.line_start}] ${source.path}\nIndexed ${source.indexed_at}\n${source.text}`;
         references.appendChild(excerpt);
       }
       pending.appendChild(references);

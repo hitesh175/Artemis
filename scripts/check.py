@@ -7,7 +7,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 for path in (ROOT / 'app').rglob('*.py'):
     ast.parse(path.read_text(encoding='utf-8-sig'), filename=str(path))
-for name in ('test_state.py', 'test_everyday.py', 'test_handsfree_audio.py', 'test_tool_router.py', 'test_chat_server.py', 'test_personal_memory.py', 'test_document_search.py'):
+for name in ('test_state.py', 'test_everyday.py', 'test_handsfree_audio.py', 'test_tool_router.py', 'test_chat_server.py', 'test_personal_memory.py', 'test_document_search.py', 'test_document_formats.py'):
     subprocess.run([sys.executable, str(ROOT / 'tests' / name)], cwd=ROOT, check=True)
 subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/app.js')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_chat_stream.cjs')], check=True)

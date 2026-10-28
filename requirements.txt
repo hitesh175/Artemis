@@ -6,3 +6,4 @@ numpy>=1.26,<2
 faster-whisper
 kokoro-onnx
 piper-tts
+pypdf>=6.10,<7

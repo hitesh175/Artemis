@@ -1,4 +1,4 @@
-"""Local snapshots of explicitly selected UTF-8 text/Markdown files."""
+"""Local snapshots of explicitly selected documents, with source locations."""
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import sqlite3
+from document_extract import extract
 
 DEFAULT_PATH = Path(__file__).resolve().parents[1]/'data'/'documents.sqlite3'
 
@@ -22,6 +23,8 @@ class DocumentSearch:
         try:
             db.execute('CREATE TABLE IF NOT EXISTS documents(id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, digest TEXT, indexed_at TEXT)')
             db.execute('CREATE VIRTUAL TABLE IF NOT EXISTS chunks USING fts5(body, document_id UNINDEXED, first_line UNINDEXED, last_line UNINDEXED)')
+            # Companion table preserves old FTS indexes without rebuilding them.
+            db.execute('CREATE TABLE IF NOT EXISTS chunk_locations(chunk_id INTEGER PRIMARY KEY, locator TEXT NOT NULL)')
             yield db
             db.commit()
         finally:
@@ -37,17 +40,19 @@ class DocumentSearch:
 
     def index(self, filename):
         path = Path(filename).resolve(strict=True)
-        if path.suffix.casefold() not in ('.txt', '.md') or not path.is_file():
-            raise ValueError('Choose a .txt or .md file.')
+        suffix=path.suffix.casefold()
+        if suffix not in ('.txt', '.md', '.pdf', '.docx') or not path.is_file():
+            raise ValueError('Choose a .txt, .md, .pdf or .docx file.')
+        limit=200000 if suffix in ('.txt','.md') else 5000000
         with path.open('rb') as source:
-            data = source.read(200001)
-        if len(data)>200000:
-            raise ValueError('Choose a file no larger than 200 KB.')
-        try:text = data.decode('utf-8-sig')
-        except UnicodeError:raise ValueError('The file must use UTF-8 text encoding.') from None
-        if '\x00' in text:raise ValueError('Binary files are not supported.')
-        chunks=list(self._chunks(text))
-        if not chunks:raise ValueError('The file contains no searchable text.')
+            data = source.read(limit+1)
+        if len(data)>limit:
+            raise ValueError('Choose a file no larger than '+('200 KB.' if limit==200000 else '5 MB.'))
+        sections=extract(data,suffix)
+        if sum(len(text) for text,_ in sections)>1000000:
+            raise ValueError('The extracted text exceeds one million characters.')
+        chunks=[(body,first,last,locator) for text,locator in sections for body,first,last in self._chunks(text)]
+        if not chunks:raise ValueError('The file contains no searchable text. Image-only scans need OCR, which is not supported yet.')
         if len(chunks)>5000:raise ValueError('The file has too many text lines (maximum 5,000 chunks).')
         digest=hashlib.sha256(data).hexdigest()
         with self._database() as db:
@@ -55,6 +60,7 @@ class DocumentSearch:
             old=db.execute('SELECT id FROM documents WHERE path=?',(str(path),)).fetchone()
             if old:
                 document_id=old['id']
+                db.execute('DELETE FROM chunk_locations WHERE chunk_id IN (SELECT rowid FROM chunks WHERE document_id=?)',(document_id,))
                 db.execute('DELETE FROM chunks WHERE document_id=?',(document_id,))
                 db.execute('UPDATE documents SET digest=?,indexed_at=? WHERE id=?',
                            (digest,datetime.now(timezone.utc).isoformat(),document_id))
@@ -63,8 +69,10 @@ class DocumentSearch:
                     raise ValueError('The index is full (50 files). Remove a document before adding another.')
                 document_id=db.execute('INSERT INTO documents(path,digest,indexed_at) VALUES (?,?,?)',
                     (str(path),digest,datetime.now(timezone.utc).isoformat())).lastrowid
-            db.executemany('INSERT INTO chunks(body,document_id,first_line,last_line) VALUES (?,?,?,?)',
-                           [(body,document_id,first,last) for body,first,last in chunks])
+            for body,first,last,locator in chunks:
+                chunk_id=db.execute('INSERT INTO chunks(body,document_id,first_line,last_line) VALUES (?,?,?,?)',
+                                    (body,document_id,first,last)).lastrowid
+                if locator:db.execute('INSERT INTO chunk_locations VALUES (?,?)',(chunk_id,locator))
         return document_id
 
     def documents(self):
@@ -77,6 +85,7 @@ class DocumentSearch:
         with self._database() as db:
             db.execute('BEGIN IMMEDIATE')
             changed=db.execute('DELETE FROM documents WHERE id=?',(document_id,)).rowcount
+            db.execute('DELETE FROM chunk_locations WHERE chunk_id IN (SELECT rowid FROM chunks WHERE document_id=?)',(document_id,))
             db.execute('DELETE FROM chunks WHERE document_id=?',(document_id,))
             return bool(changed)
 
@@ -89,14 +98,17 @@ class DocumentSearch:
         match=' OR '.join('"'+token+'"' for token in tokens)
         with self._database() as db:
             rows=db.execute('''SELECT documents.id,documents.path,documents.indexed_at,
-                chunks.body,chunks.first_line,chunks.last_line FROM chunks JOIN documents
-                ON documents.id=chunks.document_id WHERE chunks MATCH ? ORDER BY bm25(chunks), chunks.rowid LIMIT 3''',(match,))
+                chunks.body,chunks.first_line,chunks.last_line,chunk_locations.locator FROM chunks JOIN documents
+                ON documents.id=chunks.document_id LEFT JOIN chunk_locations ON chunk_locations.chunk_id=chunks.rowid
+                WHERE chunks MATCH ? ORDER BY bm25(chunks), chunks.rowid LIMIT 3''',(match,))
             return [dict(document_id=row['id'],path=row['path'],indexed_at=row['indexed_at'],
-                         line_start=int(row['first_line']),line_end=int(row['last_line']),text=row['body']) for row in rows]
+                         line_start=None if row['locator'] else int(row['first_line']),
+                         line_end=None if row['locator'] else int(row['last_line']),
+                         locator=row['locator'] or 'line '+str(row['first_line']),text=row['body']) for row in rows]
 
     @staticmethod
     def citation(source):
-        return '[Document '+str(source['document_id'])+', line '+str(source['line_start'])+'] '+source['path']
+        return '[Document '+str(source['document_id'])+', '+source.get('locator','line '+str(source['line_start']))+'] '+source['path']
 
     def context(self, query):
         sources=self.search(query)

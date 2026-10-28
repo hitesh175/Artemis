@@ -276,7 +276,7 @@ class WindowBridge:
             return {'ok':False,'reply':'The desktop window is not ready.'}
         import webview
         paths=self._window.create_file_dialog(webview.FileDialog.OPEN,allow_multiple=True,
-                                             file_types=('Text and Markdown (*.txt;*.md)',))
+                                             file_types=('Documents (*.txt;*.md;*.pdf;*.docx)',))
         if not paths:return {'ok':True,'reply':'No files selected.'}
         results=[]
         ok=True

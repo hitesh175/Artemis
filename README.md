@@ -75,7 +75,7 @@ multi-step task runner, or installation update has been introduced.
 
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Improve speech interruption and measure voice latency.
-3. Extend document search to PDF/Word with tested extraction.
+3. Validate native desktop behavior and real-model citation quality.
 4. Persistent reminders and daily briefings.
 
 ## Streamed replies and service checks
@@ -130,19 +130,24 @@ installation are pending.
 ## Document search
 
 Settings → Documents → Choose files to index opens the native file picker. Only
-selected UTF-8 .txt/.md files are indexed; there is no folder scan or file watcher.
-The limit is 50 files of 200 KB each, with up to 5,000 nonblank line chunks per file.
-PDF, Word, scanned documents and other encodings are not supported in this version.
+selected files are indexed; there is no folder scan or file watcher. Supported
+formats are UTF-8 .txt/.md (200 KB), PDF and .docx (5 MB). The limit is 50 documents,
+5,000 text chunks and one million extracted characters per file, with at most
+100 PDF pages. PDF support requires pypdf from requirements.txt. The original
+installed application environment has not been changed; tests used bundled pypdf 6.10.
 
 - `search documents for budget` returns up to three matching excerpts with file
-  paths, document IDs, and original line numbers. This works without Ollama.
+  paths, document IDs, and source locations. This works without Ollama.
 - `list documents` lists indexed IDs and paths; `list documents 2` shows page two.
 - `remove document 1` deletes that snapshot from the index, keeping the source file.
 - Choose the same file again to refresh its snapshot while preserving its ID.
 
 The ordinary local chat request also retrieves up to three matching excerpts using
 SQLite FTS5 keyword search. Excerpts are supplied as reference data, with instructions
-to cite `[Document ID, line N]`. An expandable reference section shows the actual
+to cite `[Document ID, line N]`, PDF `page N`, or Word `paragraph N` / `table N, row N`.
+Word paragraph numbering counts top-level body paragraphs, including empty ones;
+table rows count within each top-level body table. It does not invent page numbers.
+An expandable reference section shows the actual
 excerpts supplied to the model, including paths and indexing times; it does not
 claim the model used every excerpt or verified its answer. Model citation accuracy
 still requires live validation. Stored document text cannot invoke desktop tools.
@@ -154,7 +159,21 @@ answers already retained in chat; clear the conversation to remove that context.
 Search uses indexed snapshots even if the original changes or disappears. Re-index
 or remove the document explicitly when appropriate.
 
-Automated tests cover indexing, line citations, refresh, persistence, removals,
+Automated tests cover indexing, text/PDF/Word citations, refresh, persistence, removals,
 format/size limits, query escaping, a simulated picker and model context transport.
+Old text-only indexes gain a companion location table without rebuilding their FTS data.
+Failed extraction keeps the previous indexed snapshot.
 The native picker UI, desktop layout, and real-model citation behavior have not
 been tested live. Changes remain in development source; the installed app is unchanged.
+
+PDF extraction reads existing text layers only. Encrypted PDFs, image-only scans
+and legacy .doc files are unsupported. Blank PDF pages produce no excerpts; in a
+mixed text/image document only extractable text is indexed. Text order, columns,
+equations and tables may not match visual layout. Verify important details in the
+original file. Word extraction covers main-body paragraphs and top-level table
+rows; headers, footers, comments, footnotes, text boxes, nested tables and embedded
+objects are outside this version's coverage. No macros, external relationships,
+or document actions are executed.
+
+PDF API reference: https://pypdf.readthedocs.io/en/stable/user/extract-text.html.
+The tests validate extraction and locations rather than rendered document layout.

@@ -22,6 +22,7 @@ from daily_briefing import DailyBriefing
 from model_settings import ModelSettings
 from performance_log import PERFORMANCE
 from briefing_schedule import BriefingSchedule
+from calendar_store import CalendarStore
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -33,9 +34,11 @@ class WindowBridge:
         self._documents = DocumentSearch()
         self._reminders = Reminders()
         self._models = ModelSettings()
-        self._briefing = DailyBriefing(self._everyday,self._reminders)
+        self._calendar = CalendarStore()
+        self._briefing = DailyBriefing(self._everyday,self._reminders,calendar=self._calendar)
         self._briefing_schedule = BriefingSchedule(self._briefing)
         self._tools = ToolRouter([
+            Tool('calendar', 'Read explicitly imported calendar snapshots', self._calendar.execute),
             Tool('briefing', 'On-demand weather and reminder summary for today', self._briefing.execute),
             Tool('reminders', 'Create, list and cancel persistent one-shot reminders', self._reminders.execute),
             Tool('documents', 'Search, list and remove explicitly indexed documents', self._documents.execute),
@@ -285,6 +288,16 @@ class WindowBridge:
 
     def list_tools(self):
         return self._tools.catalog()
+
+    def choose_calendar(self):
+        if self._window is None:return {'ok':False,'reply':'The desktop window is not ready.'}
+        import webview
+        paths=self._window.create_file_dialog(webview.FileDialog.OPEN,file_types=('Calendar (*.ics)',))
+        if not paths:return {'ok':True,'reply':'No calendar selected.'}
+        try:
+            calendar_id=self._calendar.import_file(paths[0])
+            return {'ok':True,'reply':'Imported calendar '+str(calendar_id)+'. This is a local snapshot; import again to refresh it.'}
+        except Exception as exc:return {'ok':False,'reply':'Could not import the calendar: '+str(exc)}
 
     def get_briefing_schedule(self):
         try:return {'ok':True,**self._briefing_schedule.get()}

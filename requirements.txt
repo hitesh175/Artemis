@@ -7,3 +7,5 @@ faster-whisper
 kokoro-onnx
 piper-tts
 pypdf>=6.10,<7
+icalendar==7.3.0
+recurring-ical-events==3.8.2

@@ -29,6 +29,11 @@ if ($previousVersion -ne '6.10.0') {
     & $python -m pip install 'pypdf==6.10.0'
     if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed; application files were not replaced.' }
 }
+$calendarReady=& $python -c "import importlib.metadata as m; versions={d.metadata['Name'].lower():d.version for d in m.distributions()}; print(int(versions.get('icalendar')=='7.3.0' and versions.get('recurring-ical-events')=='3.8.2'))"
+if ($calendarReady -ne '1') {
+    & $python -m pip install 'icalendar==7.3.0' 'recurring-ical-events==3.8.2'
+    if ($LASTEXITCODE -ne 0) { throw 'Calendar dependency installation failed; application files were not replaced.' }
+}
 foreach ($file in $files) {
     $relative=$file.FullName.Substring($source.Length+1)
     $destination=Join-Path $targetRoot $relative

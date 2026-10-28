@@ -4,9 +4,10 @@ import re
 
 
 class DailyBriefing:
-    def __init__(self,everyday,reminders,now=None):
+    def __init__(self,everyday,reminders,now=None,calendar=None):
         self._everyday=everyday
         self._reminders=reminders
+        self._calendar=calendar
         self._now=now or (lambda:datetime.now(timezone.utc).astimezone())
 
     def execute(self,text):
@@ -53,5 +54,19 @@ class DailyBriefing:
             partial=True
             parts.append('Reminders are unavailable right now; this does not mean you have none.')
             spoken.append(parts[-1])
+        if self._calendar is not None:
+            try:
+                if not self._calendar.calendars():section='Calendar: import an .ics file in Settings → Calendar to include events.'
+                else:
+                    events=self._calendar.today(now)
+                    section='Calendar today (imported snapshots): '+str(len(events))+' events.'
+                    for event in events[:5]:
+                        section+='\n'+event['time']+' — '+event['summary']+(' · '+event['location'] if event['location'] else '')+' [Calendar '+str(event['calendar_id'])+']'
+                    if len(events)>5:section+='\nSay “calendar today” to see more.'
+                parts.append(section);spoken.append(section)
+            except Exception:
+                partial=True;parts.append('Calendar is unavailable; this does not mean you have no events.');spoken.append(parts[-1])
+        speech=' '.join(spoken)
+        if len(speech)>4800:speech=speech[:4700].rsplit(' ',1)[0]+'. More details are shown in chat.'
         return {'handled':True,'ok':True,'partial':partial,'reply':'\n\n'.join(parts),
-                'spoken_reply':' '.join(spoken),'sources':sources}
+                'spoken_reply':speech,'sources':sources}

@@ -42,4 +42,11 @@ with tempfile.TemporaryDirectory() as folder:
     late=datetime(2026,10,28,23,30,tzinfo=timezone(timedelta(hours=1)))
     boundary=Mock();boundary.pending.return_value=[{'id':1,'text':'Next local day','due':late.timestamp()+3600}]
     assert 'Next local day' not in DailyBriefing(everyday,boundary,now=lambda:late).execute('daily briefing')['reply']
+    long_reminders=Mock()
+    long_reminders.pending.return_value=[{'id':index+1,'due':now.timestamp()+(-60 if index<5 else 60),'text':'Long reminder '*35} for index in range(10)]
+    long_calendar=Mock();long_calendar.calendars.return_value=[{}]
+    long_calendar.today.return_value=[{'time':'All day','summary':'Long title '*27,'location':'Long place '*18,'calendar_id':1} for _ in range(5)]
+    long_briefing=DailyBriefing(everyday,long_reminders,now=lambda:now,calendar=long_calendar).execute('daily briefing')
+    assert len(long_briefing['reply'])>5000 and len(long_briefing['spoken_reply'])<=5000
+    assert 'More details are shown in chat' in long_briefing['spoken_reply']
 print('PASS: sourced weather, today/overdue reminders, local date boundaries, partial failures and no reminder consumption')

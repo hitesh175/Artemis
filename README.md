@@ -63,7 +63,7 @@ Python environments and model weights. No install or deployment is performed.
 
 The shared deterministic tool interface is implemented in app/desktop/tool_router.py.
 The desktop bridge exposes handle_command and list_tools, retaining handle_app_command
-for compatibility. Tools run in order: daily briefing, reminders, document search, personal memory, everyday (weather, date/time,
+for compatibility. Tools run in order: calendar, daily briefing, reminders, document search, personal memory, everyday (weather, date/time,
 arithmetic, help), then apps. Unknown requests continue to chat; tool failures stop dispatch. Responses
 include handled, reply, spoken_reply, tool and sources, preserving existing choices
 and confirmation tokens. Existing tools default spoken_reply to their display text
@@ -76,7 +76,7 @@ or multi-step task runner has been introduced.
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Use session timings to target voice delays and improve turn detection.
 3. Validate native desktop behavior and real-model citation quality.
-4. Calendar integration after validating the optional local briefing schedule.
+4. Optional live calendar/email connections after local snapshot validation.
 
 ## Streamed replies and service checks
 
@@ -227,7 +227,7 @@ and safe text rendering. The installed hidden desktop check verified the overdue
 
 Say or type `daily briefing` or `morning briefing`, or open Settings → Daily briefing
 → Get daily briefing. The result contains the local date, weather for the saved
-city, overdue reminders and reminders due later today. Up to five reminders in
+city, overdue reminders, reminders due later today and imported calendar events. Up to five reminders in
 each group are shown; `show reminders` provides the rest. It does not dismiss or
 change reminders. Upcoming-today reminders use the computer's local date.
 
@@ -239,7 +239,7 @@ you to set it. Weather or reminder failures are reported independently, preservi
 the other available section. Reminder failure is never presented as an empty list.
 
 On-demand briefings run when requested. Optional scheduling is described below.
-Briefings do not connect email or calendars or invent news. Local date/reminder summaries work
+Briefings do not connect email or live calendar accounts or invent news. Local date/reminder summaries work
 without Ollama; weather still needs internet. Tests cover date boundaries, partial
 failure, source attribution and reminder preservation, plus the installed button.
 
@@ -381,5 +381,46 @@ user's real schedule remains off.
 
 Installed rollback backup:
 `C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-174938`.
+
+## Imported calendar events
+
+Settings → Calendar → Import calendar file opens a picker for an .ics export.
+Only a selected file is read. No account is connected, no URL subscriptions are
+fetched, and no invitations, alarms or calendar edits are executed. The import is
+a local snapshot: import the same file again to refresh it while preserving its ID.
+Up to five calendars of 1 MB / 500 VEVENT components each are supported.
+
+- `calendar today` lists up to 15 events intersecting today, with local times,
+  titles, locations and Calendar ID references.
+- `list calendars` shows imported IDs, source paths and import timestamps.
+- `remove calendar 1` removes the snapshot while preserving its source file.
+
+Daily and scheduled briefings show up to five calendar events, labeled imported
+snapshots. All-day and multi-day events, named event timezones, daily/weekly/monthly/
+yearly recurrence, EXDATE exceptions and cancelled events are handled by icalendar
+7.3.0 and recurring-ical-events 3.8.2. Floating event times are interpreted in the
+computer's local timezone. Very frequent or multi-time-per-day recurrence rules
+are rejected. Unrecognized named timezones prompt re-export rather than guessing.
+Limits apply to expanded events too. Complex timezone exports still warrant
+comparison against the source calendar; only sample cases have been verified.
+
+Imported exports are stored unencrypted in app/data/calendars.sqlite3, excluded
+from Git and release packages. Full export content is stored locally; only event
+titles, times and locations are displayed in briefings. Removing a snapshot does
+not erase old chat text or an already prepared scheduled briefing. Dismiss that
+briefing and clear conversation separately if those copies should also disappear.
+A broken calendar produces a partial-briefing notice rather than an empty agenda.
+Long briefings keep full displayed text but shorten spoken output to the speech limit.
+
+Tests use invented calendars for UTC/floating/all-day dates, recurring exceptions,
+cancelled events, named-timezone DST changes, refresh, removal and briefing output.
+Installed verification imports a temporary all-day event and checks it appears in
+the scheduled briefing, with no microphone or audible output. No personal calendar
+has been imported. Native picker selection is covered by a simulated picker test.
+
+Installed backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-175707`.
+The rollback retains compatible calendar dependencies as well as the PDF package.
+Protocol/library reference: https://recurring-ical-events.readthedocs.io/en/latest/user-guide/examples.html.
 
 

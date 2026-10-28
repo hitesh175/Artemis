@@ -208,6 +208,9 @@ async function sendArtemisMessage(msg, fromVoice=false){
       ? commandApi.handle_command(msg)
       : commandApi?.handle_app_command?.(msg));
     const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
+    if(/^(?:calendar today|my calendar today|list calendars|remove calendar)\b/.test(toolText)&&local?.handled!==true){
+      throw Error('Calendar commands require the updated desktop app.');
+    }
     if(/^(?:daily briefing|my daily briefing|give me my daily briefing|morning briefing|my morning briefing|give me a daily briefing)[.!?]*$/.test(toolText)&&local?.handled!==true){
       throw Error('Daily briefings require the updated desktop app.');
     }

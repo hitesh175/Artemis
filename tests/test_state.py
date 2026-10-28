@@ -44,6 +44,8 @@ with tempfile.TemporaryDirectory() as tmp:
     module.ModelSettings=lambda:models_factory(Path(tmp)/'models.sqlite3')
     schedule_factory=module.BriefingSchedule
     module.BriefingSchedule=lambda briefing:schedule_factory(briefing,Path(tmp)/'schedule.sqlite3')
+    calendar_factory=module.CalendarStore
+    module.CalendarStore=lambda:calendar_factory(Path(tmp)/'calendars.sqlite3')
     b=module.WindowBridge()
     assert not b.get_briefing_schedule()['enabled']
     assert not b.set_briefing_schedule(True,'25:00')['ok']
@@ -58,7 +60,13 @@ with tempfile.TemporaryDirectory() as tmp:
     with patch.dict(sys.modules,{'webview':SimpleNamespace(FileDialog=SimpleNamespace(OPEN=10))}):
         assert b.choose_documents()['ok']
         assert b.handle_command('search documents for astronomy')['sources'][0]['line_start']==1
+        calendar=Path(tmp)/'events.ics'
+        calendar.write_text('BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nUID:test\nDTSTART;VALUE=DATE:20261028\nSUMMARY:Example class\nEND:VEVENT\nEND:VCALENDAR\n')
+        picker.return_value=[str(calendar)]
+        assert b.choose_calendar()['ok']
+        assert 'events.ics' in b.handle_command('list calendars')['reply']
         picker.return_value=None
+        assert b.choose_calendar()['reply']=='No calendar selected.'
         assert b.choose_documents()['reply']=='No files selected.'
     b._window=None
     assert b.handle_command('remember that My preferred city is Berlin')['ok']
@@ -66,7 +74,7 @@ with tempfile.TemporaryDirectory() as tmp:
     assert b.handle_command('forget memory 1')['ok']
     assert b.handle_command('calculate 2 + 3')['reply'].endswith('5')
     assert b.handle_app_command('calculate 2 + 3') == b.handle_command('calculate 2 + 3')
-    assert [tool['name'] for tool in b.list_tools()] == ['briefing', 'reminders', 'documents', 'memory', 'everyday', 'apps']
+    assert [tool['name'] for tool in b.list_tools()] == ['calendar', 'briefing', 'reminders', 'documents', 'memory', 'everyday', 'apps']
     assert 'Your daily briefing' in b.handle_command('daily briefing')['reply']
     assert b.handle_command('remind me in 1 minute to stretch')['ok']
     assert b.due_reminders()=={'ok':True,'reminders':[]}

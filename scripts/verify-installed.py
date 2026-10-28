@@ -26,6 +26,7 @@ main.Everyday=isolated(main.Everyday,'weather.json')
 main.ModelSettings=isolated(main.ModelSettings,'models.sqlite3')
 schedule_factory=main.BriefingSchedule
 main.BriefingSchedule=lambda briefing:schedule_factory(briefing,temp/'schedule.sqlite3')
+main.CalendarStore=isolated(main.CalendarStore,'calendars.sqlite3')
 bridge=main.WindowBridge()
 bridge._mini_file=temp/'mini.json'
 http=server.make_server(memory=bridge._memory,documents=bridge._documents,model_settings=bridge._models)
@@ -44,6 +45,12 @@ def verify():
         assert window.evaluate_js('window.ArtemisSession.ready')
         assert window.evaluate_js('window.ArtemisSession.quiet')
         assert not window.evaluate_js('window.ArtemisHandsfree.enabled')
+        from datetime import datetime
+        calendar=temp/'test-calendar.ics'
+        calendar.write_text('BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nUID:artemis-check\nDTSTART;VALUE=DATE:'+datetime.now().strftime('%Y%m%d')+'\nSUMMARY:Artemis calendar check\nEND:VEVENT\nEND:VCALENDAR\n',encoding='utf-8')
+        bridge._calendar.import_file(calendar)
+        assert 'Artemis calendar check' in bridge.handle_command('calendar today')['reply']
+        outcome['calendar_import']=True
         for _ in range(30):
             if window.evaluate_js("!document.getElementById('save-briefing-schedule').disabled"):break
             time.sleep(.1)
@@ -53,6 +60,7 @@ def verify():
             if window.evaluate_js("!document.getElementById('scheduled-briefing-notice').hidden"):break
             time.sleep(.1)
         assert window.evaluate_js("document.getElementById('scheduled-briefing-notice').textContent.includes('Your daily briefing')")
+        assert window.evaluate_js("document.getElementById('scheduled-briefing-notice').textContent.includes('Artemis calendar check')")
         window.evaluate_js("document.querySelector('#scheduled-briefing-notice button').click()")
         for _ in range(30):
             if window.evaluate_js("document.getElementById('scheduled-briefing-notice').hidden"):break

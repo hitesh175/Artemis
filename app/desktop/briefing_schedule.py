@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 import sqlite3
+from local_time import local_now
 
 DEFAULT_PATH=Path(__file__).resolve().parents[1]/'data'/'briefing-schedule.sqlite3'
 
@@ -13,7 +14,7 @@ class BriefingSchedule:
     def __init__(self,briefing,path=None,now=None):
         self._briefing=briefing
         self.path=Path(path) if path is not None else DEFAULT_PATH
-        self._now=now or (lambda:datetime.now().astimezone())
+        self._now=now or local_now
 
     @contextmanager
     def _database(self):

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 import sqlite3
+from local_time import local_now
 
 DEFAULT_PATH=Path(__file__).resolve().parents[1]/'data'/'calendars.sqlite3'
 
@@ -113,7 +114,7 @@ class CalendarStore:
             if command.casefold()=='list calendars':
                 reply='\n'.join(str(row['id'])+': '+row['path']+' · imported '+row['imported_at'] for row in self.calendars())
             else:
-                rows=self.today(datetime.now().astimezone())
+                rows=self.today(local_now())
                 reply='\n'.join(event['time']+' — '+event['summary']+(' · '+event['location'] if event['location'] else '')+
                     ' [Calendar '+str(event['calendar_id'])+']' for event in rows[:15])
                 if len(rows)>15:reply+='\nShowing the first 15 of '+str(len(rows))+' events.'

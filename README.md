@@ -496,4 +496,33 @@ The final interface correction is backed up at
 `C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-181806`.
 To undo both updates, roll back the correction first, then the pre-feature backup.
 
+## Reliability and source-release validation
+
+The 28 October reliability pass fixed local-day calculations to use timezone rules
+instead of a fixed current UTC offset. Windows reads its local rules through
+dateutil.tz.tzwinlocal; calendar/briefing windows can therefore span 23- or 25-hour
+days correctly. Regression checks exercise both daylight-saving transitions and
+exclude tomorrow's reminders at the changed boundary. Existing scheduled reminder
+instants are not changed. The fix is installed; backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-182650`.
+
+The source bundle now includes the Windows install-local.ps1 and rollback-local.ps1
+scripts; earlier bundles omitted those scripts. Run:
+
+```powershell
+python scripts/verify-release.py --installed-root C:\Users\kanag\Desktop\Artemis
+```
+
+This builds twice and verifies identical archive hashes, exact manifest coverage,
+all payload hashes, safe relative paths, private/runtime directory exclusions,
+required install/rollback files, and agreement with the installed application source.
+It writes output/release-verification.json. The optional installed-root check reads
+only application files listed in the source manifest, not private data or models.
+
+This is still a source distribution for an existing installation, not a standalone
+installer or evidence of clean-machine portability. Python, external dependencies,
+WebView2, Ollama and cached voice/language models remain prerequisites. A fresh
+machine installation, real microphone use and noisy-room conversation remain
+separate validation tasks.
+
 

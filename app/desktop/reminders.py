@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import sqlite3
 import time
+from local_time import local_timezone
 
 DEFAULT_PATH=Path(__file__).resolve().parents[1]/'data'/'reminders.sqlite3'
 
@@ -28,7 +29,7 @@ class Reminders:
 
     @staticmethod
     def display_time(timestamp):
-        return datetime.fromtimestamp(timestamp,timezone.utc).astimezone().isoformat(timespec='minutes')
+        return datetime.fromtimestamp(timestamp,local_timezone()).isoformat(timespec='minutes')
 
     def create(self,text,due):
         text=' '.join(text.split())

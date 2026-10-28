@@ -1,6 +1,7 @@
 """On-demand daily briefing from real weather and saved reminders; no LLM needed."""
 from datetime import datetime, timezone
 import re
+from local_time import local_now
 
 
 class DailyBriefing:
@@ -8,7 +9,7 @@ class DailyBriefing:
         self._everyday=everyday
         self._reminders=reminders
         self._calendar=calendar
-        self._now=now or (lambda:datetime.now(timezone.utc).astimezone())
+        self._now=now or local_now
 
     def execute(self,text):
         if not isinstance(text,str):return {'handled':False}

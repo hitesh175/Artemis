@@ -53,7 +53,19 @@ Python environments and model weights. No install or deployment is performed.
 
 ## Next steps
 
-1. Shared tool interface and bounded task execution.
+The shared deterministic tool interface is implemented in app/desktop/tool_router.py.
+The desktop bridge exposes handle_command and list_tools, retaining handle_app_command
+for compatibility. Tools run in order: everyday (weather, date/time, arithmetic, help),
+then apps. Unknown requests continue to chat; tool failures stop dispatch. Responses
+include handled, reply, spoken_reply, tool and sources, preserving existing choices
+and confirmation tokens. Existing tools default spoken_reply to their display text
+and sources to an empty list; structured source metadata can be supplied by future
+tools. A handled response does not imply the requested action succeeded.
+
+This change is in the development source only. No model-selected tool execution,
+multi-step task runner, or installation update has been introduced.
+
+1. Bounded task execution after tool permissions and cancellation are designed.
 2. Streamed replies, cancellation and service diagnostics.
 3. Explicit personal memory and document search with citations.
 4. Persistent reminders and daily briefings.

@@ -33,6 +33,9 @@ with tempfile.TemporaryDirectory() as tmp:
     spec=importlib.util.spec_from_file_location('quiet_main',str(Path(__file__).resolve().parents[1]/'app/desktop/main.py'))
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     b=module.WindowBridge()
+    assert b.handle_command('calculate 2 + 3')['reply'].endswith('5')
+    assert b.handle_app_command('calculate 2 + 3') == b.handle_command('calculate 2 + 3')
+    assert [tool['name'] for tool in b.list_tools()] == ['everyday', 'apps']
     assert b.start_listening()['ok'] is False
     assert b.speak_reply('Must not play')['ok'] is False
     assert b.set_speech_enabled(True)['ok'] is False

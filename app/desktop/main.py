@@ -14,6 +14,7 @@ from speech_output import SpeechOutput
 from desktop_state import DesktopState
 from app_launcher import AppLauncher
 from everyday import Everyday
+from tool_router import Tool, ToolRouter
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -21,6 +22,10 @@ class WindowBridge:
         self._window = None
         self._apps = AppLauncher()
         self._everyday = Everyday()
+        self._tools = ToolRouter([
+            Tool('everyday', 'Weather, local date/time, basic arithmetic and help', self._everyday.execute),
+            Tool('apps', 'Explicit installed-app launch requests', self._apps.execute),
+        ])
         self._voice = WhisperInput()
         self._speech = SpeechOutput()
         self._saved = DesktopState()
@@ -251,8 +256,14 @@ class WindowBridge:
         return {'ok': True, **self._saved.load()}
 
     def handle_app_command(self, text):
-        daily=self._everyday.execute(text)
-        return daily if daily.get('handled') else self._apps.execute(text)
+        # Compatibility for older desktop clients.
+        return self.handle_command(text)
+
+    def handle_command(self, text):
+        return self._tools.execute(text)
+
+    def list_tools(self):
+        return self._tools.catalog()
 
     def find_weather_locations(self, query):
         return self._everyday.find(query)

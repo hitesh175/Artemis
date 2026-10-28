@@ -163,7 +163,10 @@ async function sendArtemisMessage(msg, fromVoice=false){
   setState('thinking');
   if(fromVoice){$('headline').textContent='Thinking…';$('subhead').textContent='Artemis is preparing your reply.';}
   try{
-    const local=await window.pywebview?.api?.handle_app_command?.(msg);
+    const commandApi=window.pywebview?.api;
+    const local=await (commandApi?.handle_command
+      ? commandApi.handle_command(msg)
+      : commandApi?.handle_app_command?.(msg));
     const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
     const weatherRequest=(/\b(?:weather|forecast)\b/.test(toolText)&&!(/\b(?:explain|code|work|works|history|documentary|video|movie|app|api|meaning|definition)\b/.test(toolText)))||/^(?:will it rain|is it raining|do i need (?:an? )?umbrella|should i take (?:an? )?umbrella)/.test(toolText);
     if(weatherRequest&&local?.handled!==true){
@@ -217,7 +220,7 @@ async function sendArtemisMessage(msg, fromVoice=false){
       const api=window.pywebview?.api;
       if(api?.speak_reply){
         try{
-          const result=await api.speak_reply(data.reply);
+          const result=await api.speak_reply(data.spoken_reply ?? data.reply);
           if(!result?.ok&&result?.error!=='Speech output is muted')popup('Voice: '+result.error);
         }catch(err){popup('Voice playback: '+err.message);}
       }

@@ -15,7 +15,7 @@ official protocol documentation. No OpenJarvis dependency has been introduced.
 Make future application changes in **app/**. This is a source snapshot of the active
 Desktop installation taken on 28 October 2026. SOURCE-BASELINE.json records the
 original file hashes. The installed application remains at Desktop/Artemis and
-has not been replaced or restarted by this consolidation.
+was preserved during initial consolidation; the later feature update is now installed as recorded below.
 
 The existing Artemis-* folders, ZIP updates and baseline/ are historical reference
 packages. They remain in place and are excluded from the new Git repository.
@@ -70,8 +70,8 @@ and confirmation tokens. Existing tools default spoken_reply to their display te
 and sources to an empty list; structured source metadata can be supplied by future
 tools. A handled response does not imply the requested action succeeded.
 
-This change is in the development source only. No model-selected tool execution,
-multi-step task runner, or installation update has been introduced.
+The completed features are now installed locally. No model-selected tool execution,
+or multi-step task runner has been introduced.
 
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Improve speech interruption and measure voice latency.
@@ -94,8 +94,7 @@ are on demand, with a three-second Ollama timeout. Legacy non-streaming clients
 remain supported.
 
 Protocol reference: https://docs.ollama.com/api/chat and https://docs.ollama.com/api/tags.
-Automated checks use a fake model server and synthetic audio. Native desktop visual
-checks and a live model/voice session have not been performed for this change.
+Automated checks use a fake model server and synthetic audio. Installed WebView2 integration and a real local-model streamed reply have passed. Microphone capture and speech playback were not exercised.
 
 ARCHITECTURE.md describes the earlier installed baseline. Its historical workspace
 section predates this consolidation; use app/ for current development.
@@ -124,8 +123,7 @@ model adherence has not yet been verified. Memory commands work directly without
 Ollama, including while Quiet mode is enabled. Saving a weather preference here
 does not change the weather tool's configured city; use Settings → Everyday for that.
 
-Tests use temporary databases and a fake model. Live desktop/model validation and
-installation are pending.
+Tests use temporary databases and a fake model. Installed desktop integration has passed; real-model memory citation accuracy still needs observation.
 
 ## Document search
 
@@ -133,8 +131,7 @@ Settings → Documents → Choose files to index opens the native file picker. O
 selected files are indexed; there is no folder scan or file watcher. Supported
 formats are UTF-8 .txt/.md (200 KB), PDF and .docx (5 MB). The limit is 50 documents,
 5,000 text chunks and one million extracted characters per file, with at most
-100 PDF pages. PDF support requires pypdf from requirements.txt. The original
-installed application environment has not been changed; tests used bundled pypdf 6.10.
+100 PDF pages. PDF support requires pypdf from requirements.txt. The installed app now has pypdf 6.10.0, matching the extraction test version.
 
 - `search documents for budget` returns up to three matching excerpts with file
   paths, document IDs, and source locations. This works without Ollama.
@@ -163,8 +160,7 @@ Automated tests cover indexing, text/PDF/Word citations, refresh, persistence, r
 format/size limits, query escaping, a simulated picker and model context transport.
 Old text-only indexes gain a companion location table without rebuilding their FTS data.
 Failed extraction keeps the previous indexed snapshot.
-The native picker UI, desktop layout, and real-model citation behavior have not
-been tested live. Changes remain in development source; the installed app is unchanged.
+Installed WebView2 layout transitions and service integration passed. Native picker interaction and real-model citation accuracy still need manual verification.
 
 PDF extraction reads existing text layers only. Encrypted PDFs, image-only scans
 and legacy .doc files are unsupported. Blank PDF pages produce no excerpts; in a
@@ -177,6 +173,23 @@ or document actions are executed.
 
 PDF API reference: https://pypdf.readthedocs.io/en/stable/user/extract-text.html.
 The tests validate extraction and locations rather than rendered document layout.
+
+## Local installation update
+
+On 28 October 2026 the completed development features were copied into the existing
+Desktop/Artemis installation. The update verified all 62 application file hashes
+and installed pypdf 6.10.0 in its existing Python environment. Chats, preferences,
+model files, executable and shortcuts were preserved.
+
+Original files are backed up under:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-171308`.
+To roll back, close Artemis and run scripts/rollback-local.ps1 with that directory
+as its -Backup argument. The rollback restores old files, removes unchanged newly
+installed files, and keeps user data and the compatible PDF dependency.
+
+scripts/install-local.ps1 is the repeatable update command; scripts/verify-installed.py
+checks the installed source with temporary test data, a hidden WebView2 window,
+audio disabled, and a short live local-model reply when Ollama is available.
 
 ## Persistent reminders
 
@@ -208,5 +221,6 @@ There are no recurring reminders, automatic task execution or external messages.
 
 Tests cover timing boundaries, restart catch-up, persistence, acknowledgement,
 cancellation, concurrency, malformed dates, explicit offsets, visual inbox behavior
-and safe text rendering. Native desktop visibility and real-time notification
-delivery still need live verification. The installed application remains unchanged.
+and safe text rendering. The installed hidden desktop check verified the overdue inbox. User-visible timing and minimized-window behavior still need observation.
+
+

@@ -121,6 +121,13 @@ def verify():
             last=window.evaluate_js("document.querySelector('#messages .bubble:last-child').textContent")
             assert last and not last.startswith(('Could not connect:','Thinking')),(last,)
             outcome['live_model_reply']=last
+            window.evaluate_js("document.getElementById('refresh-performance').click()")
+            for _ in range(30):
+                if window.evaluate_js("!document.getElementById('refresh-performance').disabled"):break
+                time.sleep(.1)
+            assert window.evaluate_js("document.getElementById('performance-results').textContent.includes('Chat request: last')")
+            assert bridge.get_performance()['retained']>0
+            outcome['performance_panel']=True
         else:
             outcome['live_model_reply']='Not tested: model unavailable'
         for mode in ('mini','chat','full'):

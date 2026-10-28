@@ -1,5 +1,7 @@
 """Localhost-only server with safe Ollama chat proxy. No OS commands or mic access."""
 import json, mimetypes
+import time
+from performance_log import PERFORMANCE
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from urllib import request
@@ -51,6 +53,7 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path!='/api/chat':self.send_error(404);return
         contacting_model=False
         streaming=False
+        started=time.perf_counter();first_text=None;outcome='error'
         try:
             if self.headers.get('Content-Type','').split(';')[0].strip()!='application/json':raise ValueError('Expected JSON')
             size=int(self.headers.get('Content-Length','0'))
@@ -97,10 +100,13 @@ class Handler(SimpleHTTPRequestHandler):
                         if not isinstance(text,str):raise RuntimeError('Invalid model chunk')
                         answer+=text
                         if len(answer)>100000:raise RuntimeError('Model reply too large')
-                        if text:self.event({'delta':text})
+                        if text:
+                            if first_text is None:first_text=time.perf_counter()-started
+                            self.event({'delta':text})
                         if chunk.get('done') is True:
                             if not answer.strip():raise RuntimeError('Empty Ollama reply')
                             self.event({'done':True,'sources':sources})
+                            outcome='completed'
                             return
                     raise RuntimeError('Incomplete model stream')
                 response=json.load(result)
@@ -111,8 +117,10 @@ class Handler(SimpleHTTPRequestHandler):
             answer=answer.strip()
             if not answer:raise RuntimeError('Empty Ollama reply')
             self.reply(200,{'reply':answer,'sources':sources})
+            outcome='completed'
         except Exception as exc:
             if isinstance(exc,(BrokenPipeError,ConnectionResetError,ConnectionAbortedError)):
+                outcome='cancelled'
                 return
             if streaming:
                 try:self.event({'error':'Artemis could not finish the reply. Please try again.'})
@@ -123,6 +131,9 @@ class Handler(SimpleHTTPRequestHandler):
             else:
                 print('[Chat service]',type(exc).__name__,str(exc)[:300],flush=True)
                 self.reply(502,{'error':'Artemis could not get a reply from Ollama. Check that Ollama is running and your selected model is installed, then try again.'})
+        finally:
+            if contacting_model:
+                PERFORMANCE.record('chat',outcome,time.perf_counter()-started,first_text_seconds=first_text)
     def event(self,payload):
         self.wfile.write((json.dumps(payload,ensure_ascii=False)+'\n').encode('utf-8'))
         self.wfile.flush()

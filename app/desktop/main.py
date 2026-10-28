@@ -20,6 +20,7 @@ from document_search import DocumentSearch
 from reminders import Reminders
 from daily_briefing import DailyBriefing
 from model_settings import ModelSettings
+from performance_log import PERFORMANCE
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -282,6 +283,13 @@ class WindowBridge:
 
     def list_tools(self):
         return self._tools.catalog()
+
+    def get_performance(self):
+        return {'ok':True,**PERFORMANCE.snapshot()}
+
+    def clear_performance(self):
+        PERFORMANCE.clear()
+        return {'ok':True}
 
     def get_ollama_models(self):
         try:

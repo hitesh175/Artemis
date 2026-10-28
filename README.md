@@ -74,7 +74,7 @@ The completed features are now installed locally. No model-selected tool executi
 or multi-step task runner has been introduced.
 
 1. Bounded task execution after tool permissions and cancellation are designed.
-2. Measure voice latency and improve turn detection after speech-interruption validation.
+2. Use session timings to target voice delays and improve turn detection.
 3. Validate native desktop behavior and real-model citation quality.
 4. Optional scheduled briefings and calendar integration after on-demand validation.
 
@@ -311,5 +311,38 @@ This is limited sample evidence rather than a general accuracy/security guarante
 Manual microphone input, accent/noise conditions and audible conversation quality
 still require user-initiated testing in the running app. The quality check does not
 modify or restart the installed application.
+
+## Performance panel
+
+Settings → Performance → Refresh timings shows chat, recognition and speech timings
+from the current app session. Clear timings removes retained measurements; active
+operations may add new records when they finish. No recording or speech is started
+by refreshing or clearing this panel.
+
+The panel retains at most 50 completed/error/cancelled/waiting operation records
+in memory, without prompts, replies, transcripts, audio, file paths or model names.
+It resets on restart. Each stage shows its latest operation and the average total
+time of completed operations in the retained sample. Failed/cancelled/waiting
+operations do not contribute to completed averages. Nothing is sent externally.
+
+- Chat total is the server request duration, including retrieval and Ollama. First
+  text is measured when the server receives its first content fragment, rather than
+  when the screen paints it. Non-streamed replies do not report first-text timing.
+- Recognition total includes recording and preparation, cached-model lookup/load,
+  and transcription. Transcription includes consuming Whisper's lazy segments.
+- Speech total includes model loading, synthesis and playback. Successfully
+  completed synthesis/playback supplies separate timings; cancelled operations may
+  have only total and model-loading measurements. Device buffering and waiting for
+  shared model/playback locks may contribute to totals.
+
+These are diagnostic samples, not benchmarks or guarantees of end-to-end voice
+latency. Text commands handled by deterministic tools do not create chat-inference
+measurements. A client disconnect is marked cancelled when the server detects it.
+
+The panel is installed. Backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-174506`.
+Automated checks cover bounded/concurrent collection, content exclusion, outcome
+averages and instrumentation. Installed WebView2 verification refreshes the panel
+after a real streamed reply, with microphone and audible speech disabled.
 
 

@@ -35,6 +35,8 @@ try:
                 events=[json.loads(line) for line in response]
             assert events[-1].get(expected)
             assert json.loads(upstream.call_args.args[0].data)['stream'] is True
+    metrics=server.PERFORMANCE.snapshot()
+    assert any(entry['stage']=='chat' and entry['outcome']=='completed' and entry['first_text_seconds']>=0 for entry in metrics['recent'])
     with patch.object(server.request,'urlopen',return_value=io.BytesIO(b'{"message":{"content":"Hello"}}')):
         assert json.load(post({'message':'hello'}))['reply']=='Hello'
     with patch.object(models,'available',return_value=['example:small']):models.select('example:small')

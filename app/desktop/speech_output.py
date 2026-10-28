@@ -3,6 +3,8 @@ Speech only for displayed Ollama replies; it does not execute OS commands.
 """
 import sys
 import threading
+import time
+from performance_log import PERFORMANCE
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -61,22 +63,27 @@ class SpeechOutput:
             return {'ok':True, **self.status()}
 
     def _run(self, text, cancel):
+        started=time.perf_counter();load_started=started;load_seconds=0;timings={};failed=False
         try:
             if cancel.is_set():return
             if self.speaker is None:
                 from artemis.voice import Speaker
                 self.speaker = Speaker(enabled=True)
+                load_seconds=time.perf_counter()-load_started
             if getattr(self.speaker, 'kokoro', None) is None and getattr(self.speaker, 'piper', None) is None:
                 raise RuntimeError('No offline speech engine available. Check voice_test models or Piper fallback.')
             if cancel.is_set():return
-            self.speaker.say(text,cancel_event=cancel)
+            timings=self.speaker.say(text,cancel_event=cancel) or {}
         except Exception as exc:
+            failed=True
             with self.lock:
                 self.error = '' if cancel.is_set() else str(exc)
                 # Recreate the engine on an explicit retry after a failed initialization/playback.
                 self.speaker = None
             print('[ARTEMIS Desktop speech]', exc, flush=True)
         finally:
+            PERFORMANCE.record('speech','cancelled' if cancel.is_set() else 'error' if failed else 'completed',
+                               time.perf_counter()-started,model_load_seconds=load_seconds,**timings)
             with self.lock:
                 self.playing = False
                 self.revision += 1

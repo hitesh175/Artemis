@@ -137,10 +137,12 @@ class Speaker:
                     if cancel_event.is_set():return
                     start = time.perf_counter()
                     audio, rate = self.kokoro.create(text, voice=KOKORO_VOICE, speed=1.04, lang='en-gb')
-                    print(f'[Voice] Kokoro synthesized in {time.perf_counter()-start:.2f}s', flush=True)
+                    synthesis=time.perf_counter()-start
+                    print(f'[Voice] Kokoro synthesized in {synthesis:.2f}s', flush=True)
                 if cancel_event.is_set():return
+                playback=time.perf_counter()
                 _play(audio, rate, cancel_event)
-                return
+                return {'synthesis_seconds':synthesis,'playback_seconds':time.perf_counter()-playback}
             except Exception as exc:
                 if cancel_event.is_set():return
                 print(f'[Voice] Kokoro synthesis/playback failed: {exc}', flush=True)
@@ -152,6 +154,7 @@ class Speaker:
             import numpy as np
             with _LOAD_LOCK:
                 if cancel_event.is_set():return
+                synthesis_start=time.perf_counter()
                 out = io.BytesIO()
                 cfg = self._piper_config_cls(length_scale=1.0)
                 with wave.open(out, 'wb') as wav:
@@ -165,9 +168,11 @@ class Speaker:
                 audio=np.frombuffer(raw, dtype='<i2').astype(np.float32) / 32768.0
                 if channels>1:
                     audio=audio.reshape(-1,channels)
+                synthesis=time.perf_counter()-synthesis_start
             if cancel_event.is_set():return
+            playback=time.perf_counter()
             _play(audio,rate,cancel_event)
-            return
+            return {'synthesis_seconds':synthesis,'playback_seconds':time.perf_counter()-playback}
         raise RuntimeError('No offline speech engine available. Install kokoro-onnx and put both model files in voice_test.')
 
     def _enable_piper_fallback(self):

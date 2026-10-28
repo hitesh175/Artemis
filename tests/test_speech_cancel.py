@@ -12,6 +12,7 @@ sys.path.insert(0,str(ROOT/'app'))
 sys.path.insert(0,str(ROOT/'app/desktop'))
 from artemis import voice
 from speech_output import SpeechOutput
+from performance_log import PERFORMANCE
 
 cancel=threading.Event();writes=[];aborts=[];opened=[]
 class Stream:
@@ -67,4 +68,7 @@ assert output.set_enabled(False)['stopping']
 release.set();wait_idle(output)
 assert not output.speak('muted')['ok']
 assert output.stop()['ok']
+records=PERFORMANCE.snapshot()['recent']
+assert any(record['stage']=='speech' and record['outcome']=='cancelled' for record in records)
+assert any(record['stage']=='speech' and record['outcome']=='completed' for record in records)
 print('PASS: owned-stream abort, mono/stereo cancellation, synthesis suppression, worker isolation, retry and mute interruption')

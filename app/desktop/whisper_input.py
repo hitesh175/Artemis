@@ -7,6 +7,7 @@ import os
 import threading
 import time
 from speech_endpoint import SpeechEndpoint
+from performance_log import PERFORMANCE
 
 
 class WhisperInput:
@@ -95,6 +96,7 @@ class WhisperInput:
         return self._model
 
     def _run(self, stop):
+        started=time.perf_counter();timings={}
         try:
             if self._cancel.is_set():
                 return
@@ -173,7 +175,11 @@ class WhisperInput:
             # A small end pad avoids truncating the last phoneme after Stop is clicked.
             audio = np.pad(audio, (0, int(rate * 0.18)))
             self._update('transcribing')
+            timings['capture_seconds']=time.perf_counter()-started
+            model_start=time.perf_counter()
             model = self._load_model()
+            timings['model_load_seconds']=time.perf_counter()-model_start
+            transcribe_start=time.perf_counter()
             short = duration < 4.0
             segments, _ = model.transcribe(
                 audio, language='en', beam_size=5,
@@ -189,6 +195,7 @@ class WhisperInput:
                 ),
             )
             transcript = ' '.join(seg.text.strip() for seg in segments).strip()
+            timings['transcription_seconds']=time.perf_counter()-transcribe_start
             if self._cancel.is_set():
                 return
             if transcript:
@@ -198,3 +205,7 @@ class WhisperInput:
         except Exception as exc:
             if not self._cancel.is_set():
                 self._update('error', error=f'Microphone/Whisper failed: {exc}')
+        finally:
+            state=self.status()['state']
+            outcome='cancelled' if self._cancel.is_set() else 'completed' if state=='done' else 'waiting' if state=='waiting' else 'error'
+            PERFORMANCE.record('recognition',outcome,time.perf_counter()-started,**timings)

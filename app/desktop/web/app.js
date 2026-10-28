@@ -152,6 +152,21 @@ $('animation-speed').addEventListener('input',e=>{speed=Number(e.target.value)/1
 $('orb-scale').addEventListener('input',e=>{let v=Number(e.target.value);document.documentElement.style.setProperty('--orb-scale',(v/100).toString());$('scale-value').textContent=v+'%'});
 $('reduce-motion').addEventListener('change',e=>{if(e.target.checked){speed=0;$('animation-speed').value=0;$('speed-value').textContent='0.0×'}else{$('animation-speed').value=100;speed=1;$('speed-value').textContent='1.0×'}});
 let history=[],busy=false;
+let activeReply=null;
+$('stop-reply').addEventListener('click',()=>activeReply?.abort());
+$('check-services').addEventListener('click',async()=>{
+  const button=$('check-services');button.disabled=true;
+  $('service-status').textContent='Checking…';
+  try{
+    const response=await fetch('/api/diagnostics',{signal:AbortSignal.timeout(5000)});
+    if(!response.ok)throw Error('Service check failed');
+    const status=await response.json();
+    const api=window.pywebview?.api;
+    const voice=await api?.voice_status?.(),speech=await api?.speech_status?.();
+    $('service-status').textContent=`Ollama: ${status.ollama}. Model: ${status.model}. Recognition: ${voice?.state||'desktop app required'}. Speech: ${speech?.error|| (speech ? (speech.playing?'playing':speech.enabled?'enabled':'muted'):'desktop app required')}. Audio devices have not been tested.`;
+  }catch(err){$('service-status').textContent='Could not check services: '+err.message;}
+  finally{button.disabled=false;}
+});
 function bubble(role,content){let el=document.createElement('div');el.className='bubble '+role;el.textContent=content;let welcome=$('messages').querySelector('.welcome');if(welcome)welcome.remove();$('messages').appendChild(el);$('messages').scrollTop=$('messages').scrollHeight;return el}
 async function sendArtemisMessage(msg, fromVoice=false){
   msg=String(msg||'').trim();
@@ -178,12 +193,23 @@ async function sendArtemisMessage(msg, fromVoice=false){
     let data;
     if(local?.handled){data=local;}
     else{
-      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),115000);
+      const controller=new AbortController();activeReply=controller;
+      let timedOut=false;
+      const timer=setTimeout(()=>{timedOut=true;controller.abort();},115000);
+      $('stop-reply').hidden=false;
       let response;
-      try{response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,history:prev.slice(-2)}),signal:controller.signal});}
-      finally{clearTimeout(timer);}
-      data=await response.json();
-      if(!response.ok)throw Error(data.error||'Request failed');
+      try{
+        response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,history:prev.slice(-2),stream:true}),signal:controller.signal});
+        data=await readArtemisStream(response,text=>{
+          pending.textContent=text;
+          if(fromVoice)$('subhead').textContent=text;
+          $('messages').scrollTop=$('messages').scrollHeight;
+        });
+        if(controller.signal.aborted)throw new DOMException('Stopped','AbortError');
+      }catch(err){
+        if(controller.signal.aborted && timedOut)throw Error('The reply took too long. Please try again.');
+        throw err;
+      }finally{clearTimeout(timer);activeReply=null;$('stop-reply').hidden=true;}
     }
     pending.textContent=data.reply;
     if(data.weather_choices){
@@ -226,6 +252,13 @@ async function sendArtemisMessage(msg, fromVoice=false){
       }
     }
   }catch(err){
+    if(err.name==='AbortError'){
+      pending.textContent='Reply stopped.';
+      if(window.ArtemisHandsfree?.enabled)await window.ArtemisHandsfree.stop('Reply stopped.');
+      setState('idle');
+      if(fromVoice)$('subhead').textContent='Reply stopped.';
+      return;
+    }
     pending.textContent='Could not connect: '+err.message;
     if(window.ArtemisHandsfree?.enabled)await window.ArtemisHandsfree.stop('Paused: reply failed.');
     setState('error');

@@ -3,6 +3,13 @@
 Windows desktop assistant with local Ollama chat, Whisper recognition, Kokoro/Piper
 speech, opt-in hands-free, Mini mode, Quiet mode, app launching and everyday tools.
 
+## Reference policy
+
+OpenJarvis is an ideas-only reference. Do not copy its source, assets, documentation,
+or implementation into Artemis. Develop changes from Artemis's existing code and
+independently written implementations. API integration may follow the provider's
+official protocol documentation. No OpenJarvis dependency has been introduced.
+
 ## Source of truth
 
 Make future application changes in **app/**. This is a source snapshot of the active
@@ -17,7 +24,8 @@ music service and older wake-word/orb experiments are excluded from app/.
 
 ## Development and verification
 
-Use Python 3.11 x64 on Windows. From the repository root:
+Use Python 3.11 x64 on Windows. Node.js is also required for JavaScript checks
+(not for running Artemis). From the repository root:
 
 ```powershell
 python -m venv .venv
@@ -66,9 +74,28 @@ This change is in the development source only. No model-selected tool execution,
 multi-step task runner, or installation update has been introduced.
 
 1. Bounded task execution after tool permissions and cancellation are designed.
-2. Streamed replies, cancellation and service diagnostics.
+2. Improve speech interruption and measure voice latency.
 3. Explicit personal memory and document search with citations.
 4. Persistent reminders and daily briefings.
+
+## Streamed replies and service checks
+
+Chat now streams display text through the local proxy. Speech starts only after a
+complete reply. Stop reply cancels the client request, discards the incomplete turn
+from saved context, and pauses hands-free mode. It does not undo desktop tool
+actions or interrupt audio already playing. The proxy closes its upstream request
+when it detects client disconnection; a stalled upstream read may take up to its
+100-second timeout, so immediate cancellation of Ollama computation is not guaranteed.
+
+Settings → Service status → Check services checks Ollama reachability and the
+installed artemis model, and reports current recognition/speech state. It does not
+open the microphone, play audio or claim that audio devices are verified. Checks
+are on demand, with a three-second Ollama timeout. Legacy non-streaming clients
+remain supported.
+
+Protocol reference: https://docs.ollama.com/api/chat and https://docs.ollama.com/api/tags.
+Automated checks use a fake model server and synthetic audio. Native desktop visual
+checks and a live model/voice session have not been performed for this change.
 
 ARCHITECTURE.md describes the earlier installed baseline. Its historical workspace
 section predates this consolidation; use app/ for current development.

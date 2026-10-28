@@ -14,7 +14,7 @@ def build():
     files += [ROOT / p for p in ('README.md', 'requirements.txt',
                                  'requirements-baseline.lock', 'SOURCE-BASELINE.json')]
     files += [p for p in (ROOT / 'scripts').glob('*.py')]
-    files += [p for p in (ROOT / 'tests').glob('*.py')]
+    files += [p for p in (ROOT / 'tests').glob('*') if p.suffix in ('.py', '.cjs')]
     hashes = {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(files)}
     output = ROOT / 'output' / 'releases' / 'artemis-source.zip'

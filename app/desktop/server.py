@@ -16,6 +16,15 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header('Cross-Origin-Resource-Policy','same-origin')
         super().end_headers()
     def do_GET(self):
+        if self.path=='/api/diagnostics':
+            try:
+                with request.urlopen('http://127.0.0.1:11434/api/tags',timeout=3) as response:
+                    models=json.load(response)['models']
+                ready=any(m.get('name') in ('artemis','artemis:latest') for m in models)
+                self.reply(200,{'ok':ready,'ollama':'reachable','model':'ready' if ready else 'not installed'})
+            except Exception:
+                self.reply(200,{'ok':False,'ollama':'unavailable','model':'not checked'})
+            return
         if self.path in ('/api/health','/api/health?'):
             self.reply(200,{'ok':True,'mode':'chat-only','model':'artemis'});return
         if self.path.startswith('/assets/'):
@@ -28,6 +37,7 @@ class Handler(SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path!='/api/chat':self.send_error(404);return
         contacting_model=False
+        streaming=False
         try:
             if self.headers.get('Content-Type','').split(';')[0].strip()!='application/json':raise ValueError('Expected JSON')
             size=int(self.headers.get('Content-Length','0'))
@@ -37,14 +47,39 @@ class Handler(SimpleHTTPRequestHandler):
             message=payload.get('message')
             if not isinstance(message,str) or not 1<=len(message.strip())<=3000:raise ValueError('Message must contain 1–3000 characters')
             history=payload.get('history',[])
+            stream=payload.get('stream',False)
+            if type(stream) is not bool:raise ValueError('Invalid stream flag')
             if not isinstance(history,list):raise ValueError('Invalid history')
             safe=[]
             for item in history[-14:]:
                 if isinstance(item,dict) and item.get('role') in ('assistant','user') and isinstance(item.get('content'),str):safe.append({'role':item['role'],'content':item['content'][:4000]})
-            req_data=json.dumps({'model':'artemis','stream':False,'think':False,'messages':[{'role':'system','content':SYSTEM}]+safe+[{'role':'user','content':message.strip()}],'options':{'num_predict':320}}).encode()
+            req_data=json.dumps({'model':'artemis','stream':stream,'think':False,'messages':[{'role':'system','content':SYSTEM}]+safe+[{'role':'user','content':message.strip()}],'options':{'num_predict':320}}).encode()
             req=request.Request('http://127.0.0.1:11434/api/chat',data=req_data,headers={'Content-Type':'application/json'},method='POST')
             contacting_model=True
-            with request.urlopen(req,timeout=100) as result:response=json.load(result)
+            with request.urlopen(req,timeout=100) as result:
+                if stream:
+                    self.send_response(200)
+                    self.send_header('Content-Type','application/x-ndjson; charset=utf-8')
+                    self.send_header('Connection','close')
+                    self.end_headers()
+                    self.close_connection=True
+                    streaming=True
+                    answer=''
+                    for line in result:
+                        if not line.strip():continue
+                        chunk=json.loads(line)
+                        if not isinstance(chunk,dict) or chunk.get('error'):raise RuntimeError('Model stream failed')
+                        text=chunk.get('message',{}).get('content','')
+                        if not isinstance(text,str):raise RuntimeError('Invalid model chunk')
+                        answer+=text
+                        if len(answer)>100000:raise RuntimeError('Model reply too large')
+                        if text:self.event({'delta':text})
+                        if chunk.get('done') is True:
+                            if not answer.strip():raise RuntimeError('Empty Ollama reply')
+                            self.event({'done':True})
+                            return
+                    raise RuntimeError('Incomplete model stream')
+                response=json.load(result)
             if not isinstance(response,dict) or not isinstance(response.get('message'),dict):
                 raise RuntimeError('Invalid model response')
             answer=response['message'].get('content','')
@@ -53,11 +88,21 @@ class Handler(SimpleHTTPRequestHandler):
             if not answer:raise RuntimeError('Empty Ollama reply')
             self.reply(200,{'reply':answer})
         except Exception as exc:
+            if isinstance(exc,(BrokenPipeError,ConnectionResetError,ConnectionAbortedError)):
+                return
+            if streaming:
+                try:self.event({'error':'Artemis could not finish the reply. Please try again.'})
+                except OSError:pass
+                return
             if not contacting_model and isinstance(exc,(ValueError,UnicodeError)):
                 self.reply(400,{'error':str(exc)})
             else:
                 print('[Chat service]',type(exc).__name__,str(exc)[:300],flush=True)
                 self.reply(502,{'error':'Artemis could not get a reply from Ollama. Check that Ollama is running and the artemis model is installed, then send your message again.'})
+    def event(self,payload):
+        self.wfile.write((json.dumps(payload,ensure_ascii=False)+'\n').encode('utf-8'))
+        self.wfile.flush()
+
     def reply(self,status,payload):
         data=json.dumps(payload,ensure_ascii=False).encode('utf-8')
         self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)

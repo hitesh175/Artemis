@@ -12,6 +12,7 @@ subprocess.run([sys.executable, str(ROOT / 'tests/test_performance.py')], cwd=RO
 subprocess.run([sys.executable, str(ROOT / 'tests/test_briefing_schedule.py')], cwd=ROOT, check=True)
 subprocess.run([sys.executable, str(ROOT / 'tests/test_calendar.py')], cwd=ROOT, check=True)
 subprocess.run([sys.executable, str(ROOT / 'tests/test_voice_warmup.py')], cwd=ROOT, check=True)
+subprocess.run([sys.executable, str(ROOT / 'tests/test_task_plans.py')], cwd=ROOT, check=True)
 for name in ('test_state.py', 'test_everyday.py', 'test_handsfree_audio.py', 'test_tool_router.py', 'test_chat_server.py', 'test_personal_memory.py', 'test_document_search.py', 'test_document_formats.py', 'test_reminders.py', 'test_daily_briefing.py', 'test_model_settings.py'):
     subprocess.run([sys.executable, str(ROOT / 'tests' / name)], cwd=ROOT, check=True)
 subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/app.js')], check=True)
@@ -21,7 +22,9 @@ subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/performance.js')]
 subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/briefing-schedule.js')], check=True)
 subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/calendar.js')], check=True)
 subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/voice-warmup.js')], check=True)
+subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/task-plans.js')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_chat_stream.cjs')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_reminders_ui.cjs')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_model_settings_ui.cjs')], check=True)
+subprocess.run(['node', str(ROOT / 'tests/test_task_plans_ui.cjs')], check=True)
 print('PASS: canonical Python syntax and regression checks')

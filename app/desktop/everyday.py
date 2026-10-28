@@ -80,8 +80,11 @@ class Everyday:
     def location(self):return {'ok':True,'location':self._location['label'] if self._location else ''}
 
     def _weather(self,tomorrow=False):
+        return self._weather_response(tomorrow)['reply']
+
+    def _weather_response(self,tomorrow=False):
         with self._lock:loc=dict(self._location) if self._location else None
-        if not loc:return 'Set your weather city in Settings → Everyday first.'
+        if not loc:return {'handled':True,'ok':False,'reply':'Set your weather city in Settings → Everyday first.'}
         key=(loc['latitude'],loc['longitude'])
         try:
             cached=self._cache.get(key)
@@ -99,11 +102,12 @@ class Everyday:
                 reply+=f"Currently {current['temperature_2m']}°C, feels like {current['apparent_temperature']}°C, {CODES.get(current['weather_code'],'conditions unavailable')}. Wind {current['wind_speed_10m']} km/h. "
             reply+=f"Forecast: {CODES.get(daily['weather_code'][i],'conditions unavailable')}; high {daily['temperature_2m_max'][i]}°C, low {daily['temperature_2m_min'][i]}°C; rain chance {daily['precipitation_probability_max'][i]}%. "
             reply+='Data time: '+data['current']['time'].replace('T',' ')+', '+data['timezone']+'. Source: Open-Meteo. https://open-meteo.com/'
-            return reply
-        except Exception:return 'I could not retrieve live weather. Check your internet connection and try again; I will not guess the forecast.'
+            return {'handled':True,'ok':True,'reply':reply}
+        except Exception:return {'handled':True,'ok':False,'reply':'I could not retrieve live weather. Check your internet connection and try again; I will not guess the forecast.'}
 
     def execute(self,text):
         if not isinstance(text,str):return {'handled':False}
+        ok=True
         s=re.sub(r'\s+',' ',text.casefold()).strip(' .?!').replace('’',"'")
         s=re.sub(r'^(?:hey\s+)?artemis[,!:. ]+','',s)
         s=re.sub(r'^(?:(?:can|could|would) you (?:please )?|please )','',s)
@@ -118,10 +122,10 @@ class Everyday:
         elif re.match(r'^(?:calculate|compute|what is|what\x27s)\s+[-+.(\d]',s):
             expr=re.sub(r'^(?:calculate|compute|what is|what\x27s)\s+','',s)
             try:reply=expr+' = '+format(arithmetic(expr),'.12g')
-            except (ValueError,SyntaxError,ZeroDivisionError,OverflowError) as exc:reply='Could not calculate that: '+str(exc)
+            except (ValueError,SyntaxError,ZeroDivisionError,OverflowError) as exc:reply='Could not calculate that: '+str(exc);ok=False
         elif ((re.search(r'\b(?:weather|forecast)\b',s) and not re.search(r'\b(?:explain|code|work|works|history|documentary|video|movie|app|api|meaning|definition)\b',s)) or re.match(r'^(?:will it rain|is it raining|do i need (?:an? )?umbrella|should i take (?:an? )?umbrella)',s)):
             if re.search(r'\b(?:week|yesterday|weekend)\b',s):
-                return {'handled':True,'reply':'I currently support today and tomorrow. Try “weather tomorrow”.'}
+                return {'handled':True,'ok':False,'reply':'I currently support today and tomorrow. Try “weather tomorrow”.'}
             city=re.search(r'\bin\s+(.+)',s)
             query=city.group(1) if city else ''
             if not query:
@@ -134,13 +138,13 @@ class Everyday:
             query=re.sub(r"\b(?:today|tomorrow|please|right now|report|update|conditions)\b",'',query).strip(' ,.!?')
             if query:
                 if self._location and query.casefold() in (self._location['label'].split(',')[0].casefold(),self._location['label'].casefold()):
-                    return {'handled':True,'reply':self._weather('tomorrow' in s)}
+                    return self._weather_response('tomorrow' in s)
                 found=self.find(query)
-                if not found['ok']:reply=found['error']
-                elif not found['choices']:reply='No matching weather city found. Try city, country.'
+                if not found['ok']:reply=found['error'];ok=False
+                elif not found['choices']:reply='No matching weather city found. Try city, country.';ok=False
                 else:return {'handled':True,'reply':'Choose the location below to use for weather, then ask again.','weather_choices':found['choices']}
             elif any(word in s for word in ('week','yesterday','weekend')):reply='I currently support today and tomorrow. Try “weather tomorrow”.'
-            else:reply=self._weather('tomorrow' in s)
+            else:return self._weather_response('tomorrow' in s)
         else:return {'handled':False}
-        return {'handled':True,'reply':reply}
+        return {'handled':True,'ok':ok,'reply':reply}
 

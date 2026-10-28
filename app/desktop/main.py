@@ -24,6 +24,7 @@ from performance_log import PERFORMANCE
 from briefing_schedule import BriefingSchedule
 from calendar_store import CalendarStore
 from voice_warmup import VoiceWarmup
+from task_plans import TaskPlans
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -48,6 +49,7 @@ class WindowBridge:
             Tool('apps', 'Explicit installed-app launch requests', self._apps.execute),
         ])
         self._voice = WhisperInput()
+        self._tasks = TaskPlans(self._tools,self._apps)
         self._speech = SpeechOutput()
         self._warmup = VoiceWarmup(self._voice,self._speech)
         self._saved = DesktopState()
@@ -300,7 +302,18 @@ class WindowBridge:
         return self.handle_command(text)
 
     def handle_command(self, text):
-        return self._tools.execute(text)
+        plan=self._tasks.plan(text)
+        return plan if plan.get('handled') else self._tools.execute(text)
+
+    def run_task_plan(self,token):
+        self.set_handsfree(False)
+        return self._tasks.run(token)
+
+    def confirm_task_app(self,token):
+        return self._tasks.confirm_app(token)
+
+    def cancel_task_plan(self,token):
+        return self._tasks.cancel(token)
 
     def list_tools(self):
         return self._tools.catalog()

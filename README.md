@@ -70,10 +70,10 @@ and confirmation tokens. Existing tools default spoken_reply to their display te
 and sources to an empty list; structured source metadata can be supplied by future
 tools. A handled response does not imply the requested action succeeded.
 
-The completed features are now installed locally. No model-selected tool execution,
-or multi-step task runner has been introduced.
+The completed features are now installed locally. Reviewed deterministic task
+plans are available; model-selected tool execution is not enabled.
 
-1. Bounded task execution after tool permissions and cancellation are designed.
+1. Validate reviewed task plans with real everyday use.
 2. Use session timings to target voice delays and improve turn detection.
 3. Validate native desktop behavior and real-model citation quality.
 4. Optional live calendar/email connections after local snapshot validation.
@@ -452,5 +452,48 @@ and confirms Quiet mode remains on with no recording thread or speech playback.
 
 Installed backup:
 `C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-180518`.
+
+## Reviewed task plans
+
+Type `plan tasks: what time is it; calculate 25 * 4; open Notepad` in chat.
+`run tasks:` also creates a preview; it does not bypass review. Plans require
+2–4 semicolon-separated steps and expire after five minutes. Click Run these
+steps to execute. No tool, network weather lookup or application launch is done
+while preparing a preview. Plans are deterministic, not LLM-generated actions.
+
+Supported reads are weather today/tomorrow, what time is it, what is the date,
+calculate an arithmetic expression, daily briefing, calendar today, show reminders,
+show memories, search documents for a topic and find memories about a topic.
+An explicit open/launch/start app request may appear only as the final step.
+Memory edits, reminder creation, file changes, arbitrary shell commands and nested
+plans are not accepted. The existing installed-app resolver handles launches;
+ambiguous app matches pause for a separate Open-and-finish confirmation with the
+original single-use app token and its 60-second expiry.
+
+Steps run serially, and a failed/unhandled/partial-result step stops later steps.
+Weather and calculation results now expose explicit success flags so failure
+messages cannot accidentally trigger a subsequent app launch. Repeated Run clicks
+do not replay a plan. Cancellation stops after an in-flight read returns; it
+prevents later steps, but cannot undo an already started app launch or completed
+action. A final app launch is serialized with cancellation to resolve that race.
+
+Plans pause hands-free and do not speak their preview or results automatically.
+Their latest text replaces the saved assistant plan entry. Clear conversation is
+blocked while an executed plan is still active or awaiting app confirmation.
+There are at most ten active plans in memory; plans do not survive restart, and
+restored chat text does not recreate run buttons. Expired or cancelled suggestions
+cannot be launched through the plan. Cancel a plan explicitly if abandoning it.
+
+Unit checks cover preview-only behavior, bounds, failure before launch, duplicate
+execution, cancellation, expiry and app confirmation using mocks. Installed
+WebView2 verification clicks Run for calculation-and-time steps only; it never
+opens a real app as part of that test. Real app-plan launches still need a deliberate
+user test. The source distribution and installed app contain this feature.
+
+Original pre-feature backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-181603`.
+The final interface correction is backed up at
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-181806`.
+To undo both updates, roll back the correction first, then the pre-feature backup.
 
 

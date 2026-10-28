@@ -163,6 +163,12 @@ $('animation-speed').addEventListener('input',e=>{speed=Number(e.target.value)/1
 $('orb-scale').addEventListener('input',e=>{let v=Number(e.target.value);document.documentElement.style.setProperty('--orb-scale',(v/100).toString());$('scale-value').textContent=v+'%'});
 $('reduce-motion').addEventListener('change',e=>{if(e.target.checked){speed=0;$('animation-speed').value=0;$('speed-value').textContent='0.0×'}else{$('animation-speed').value=100;speed=1;$('speed-value').textContent='1.0×'}});
 let history=[],busy=false;
+window.updateTaskPlanHistory=(before,after)=>{
+  for(let index=history.length-1;index>=0;index--){
+    if(history[index].role==='assistant'&&history[index].content===before){history[index].content=after;break;}
+  }
+  void window.ArtemisSession?.saveHistory(history);
+};
 let activeReply=null;
 $('daily-briefing').addEventListener('click',()=>{
   if(busy){popup('Wait for the current reply before starting a briefing.');return;}
@@ -208,6 +214,9 @@ async function sendArtemisMessage(msg, fromVoice=false){
       ? commandApi.handle_command(msg)
       : commandApi?.handle_app_command?.(msg));
     const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
+    if(/^(?:plan|run) tasks\b/.test(toolText)&&local?.handled!==true){
+      throw Error('Task plans require the updated desktop app. No steps have run.');
+    }
     if(/^(?:calendar today|my calendar today|list calendars|remove calendar)\b/.test(toolText)&&local?.handled!==true){
       throw Error('Calendar commands require the updated desktop app.');
     }
@@ -252,6 +261,11 @@ async function sendArtemisMessage(msg, fromVoice=false){
       }finally{clearTimeout(timer);activeReply=null;$('stop-reply').hidden=true;}
     }
     pending.textContent=data.reply;
+    if(data.task_plan){
+      await window.ArtemisHandsfree?.stop('Review the task plan in chat.');
+      window.renderTaskPlan?.(pending,data);
+      openPanel('chat');
+    }
     if(!local?.handled && data.sources?.length){
       const references=document.createElement('details');
       const label=document.createElement('summary');label.textContent='Reference excerpts supplied to the model';references.appendChild(label);
@@ -292,7 +306,7 @@ async function sendArtemisMessage(msg, fromVoice=false){
     void window.ArtemisSession?.saveHistory(history);
     setState('idle');
     if(fromVoice){$('headline').textContent='Artemis';$('subhead').textContent=data.reply;}
-    if(speechOn&&window.ArtemisSession?.quiet===false){
+    if(speechOn&&window.ArtemisSession?.quiet===false&&!data.task_plan){
       const api=window.pywebview?.api;
       if(api?.speak_reply){
         try{
@@ -325,7 +339,7 @@ $('chat-form').addEventListener('submit',e=>{
   $('chat-input').value='';
   void sendArtemisMessage(msg,false);
 });
-$('clear-chat').addEventListener('click',()=>{if(busy){popup('Wait for the current reply before clearing.');return}history=[];void window.ArtemisSession?.saveHistory(history);$('messages').innerHTML='<div class="welcome"><img src="/assets/lunar_a.png" alt=""><h3>Start a new conversation</h3><p>Connected to your local Ollama model when it is running.</p></div>';setState('idle')});
+$('clear-chat').addEventListener('click',()=>{if(busy||window.hasRunningTaskPlan?.()){popup('Wait for the reply or finish/cancel the active task plan before clearing.');return}history=[];void window.ArtemisSession?.saveHistory(history);$('messages').innerHTML='<div class="welcome"><img src="/assets/lunar_a.png" alt=""><h3>Start a new conversation</h3><p>Connected to your local Ollama model when it is running.</p></div>';setState('idle')});
 document.addEventListener('fullscreenchange',()=>syncFullscreenButton(Boolean(document.fullscreenElement)));
 window.addEventListener('pywebviewready',()=>{window.pywebview?.api?.get_fullscreen?.().then(v=>syncFullscreenButton(Boolean(v.fullscreen))).catch(()=>{});});
 setState('idle');initGlass();

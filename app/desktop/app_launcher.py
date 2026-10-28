@@ -85,6 +85,9 @@ class AppLauncher:
             except Exception as exc:
                 return {'handled':True,'launched':False,'reply':'I could not open '+target+': '+str(exc)}
 
+    def cancel_confirmation(self,token):
+        with self._lock:self._pending.pop(token,None)
+
     def confirm(self,token):
         with self._lock:
             pending=self._pending.pop(token,None) if isinstance(token,str) else None

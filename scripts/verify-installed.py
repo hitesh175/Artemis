@@ -80,6 +80,18 @@ def verify():
         assert bridge._voice._thread is None
         assert window.evaluate_js("['index-documents','check-services','stop-reply','reminder-inbox'].every(id=>Boolean(document.getElementById(id)))")
         assert window.evaluate_js("typeof readArtemisStream==='function'")
+        window.evaluate_js("void sendArtemisMessage('plan tasks: calculate 2 + 3; what time is it')")
+        for _ in range(30):
+            if window.evaluate_js("Array.from(document.querySelectorAll('#messages button')).some(button=>button.textContent==='Run these steps')"):break
+            time.sleep(.1)
+        assert window.evaluate_js("Array.from(document.querySelectorAll('#messages button')).some(button=>button.textContent==='Run these steps')")
+        window.evaluate_js("Array.from(document.querySelectorAll('#messages button')).find(button=>button.textContent==='Run these steps').click()")
+        for _ in range(30):
+            if window.evaluate_js("document.querySelector('#messages .bubble:last-child').textContent.includes('completed.')"):break
+            time.sleep(.1)
+        assert window.evaluate_js("document.querySelector('#messages .bubble:last-child').textContent.includes('2 + 3 = 5')")
+        assert window.evaluate_js("document.querySelector('#messages .bubble:last-child').textContent.includes('completed.')")
+        outcome['reviewed_task_plan']=True
         # Exercise the real stop control with synthetic synthesis, without sound.
         from types import SimpleNamespace
         speech_started=threading.Event()

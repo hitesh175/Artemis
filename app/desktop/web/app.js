@@ -153,6 +153,10 @@ $('orb-scale').addEventListener('input',e=>{let v=Number(e.target.value);documen
 $('reduce-motion').addEventListener('change',e=>{if(e.target.checked){speed=0;$('animation-speed').value=0;$('speed-value').textContent='0.0×'}else{$('animation-speed').value=100;speed=1;$('speed-value').textContent='1.0×'}});
 let history=[],busy=false;
 let activeReply=null;
+$('daily-briefing').addEventListener('click',()=>{
+  if(busy){popup('Wait for the current reply before starting a briefing.');return;}
+  openPanel('chat');void sendArtemisMessage('daily briefing');
+});
 $('index-documents').addEventListener('click',async()=>{
   const button=$('index-documents');button.disabled=true;
   try{
@@ -193,6 +197,9 @@ async function sendArtemisMessage(msg, fromVoice=false){
       ? commandApi.handle_command(msg)
       : commandApi?.handle_app_command?.(msg));
     const toolText=msg.toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ').trim().replace(/^(?:hey\s+)?artemis[,!:. ]+/,'').replace(/^(?:(?:can|could|would) you (?:please )?|please )/,'').replace(/^whether(?=\s+(?:today|tomorrow)\b)/,'weather');
+    if(/^(?:daily briefing|my daily briefing|give me my daily briefing|morning briefing|my morning briefing|give me a daily briefing)[.!?]*$/.test(toolText)&&local?.handled!==true){
+      throw Error('Daily briefings require the updated desktop app.');
+    }
     if(/^(?:remind me\b|show reminders\b|list reminders\b|cancel reminder\b)/.test(toolText)&&local?.handled!==true){
       throw Error('Reminders require the updated desktop app. No reminder has been scheduled.');
     }

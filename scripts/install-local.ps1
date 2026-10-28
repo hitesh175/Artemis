@@ -22,10 +22,13 @@ foreach ($file in $files) {
     }
     $records+=@{path=$relative;existed=$existed;sha256=(Get-FileHash -LiteralPath $file.FullName).Hash}
 }
-@{target=$targetRoot;files=$records;dependency='pypdf==6.10.0';dependencyPreviouslyAbsent=$true} | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 (Join-Path $backup 'install-manifest.json')
 $python=Join-Path $targetRoot '.venv\Scripts\python.exe'
-& $python -m pip install 'pypdf==6.10.0'
-if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed; application files were not replaced.' }
+$previousVersion=& $python -c "import importlib.metadata as m; print(next((d.version for d in m.distributions() if d.metadata['Name'].lower()=='pypdf'),''))"
+@{target=$targetRoot;files=$records;dependency='pypdf==6.10.0';previousDependencyVersion=$previousVersion;dependencyPreviouslyAbsent=(-not $previousVersion)} | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 (Join-Path $backup 'install-manifest.json')
+if ($previousVersion -ne '6.10.0') {
+    & $python -m pip install 'pypdf==6.10.0'
+    if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed; application files were not replaced.' }
+}
 foreach ($file in $files) {
     $relative=$file.FullName.Substring($source.Length+1)
     $destination=Join-Path $targetRoot $relative

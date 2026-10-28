@@ -55,7 +55,8 @@ with tempfile.TemporaryDirectory() as tmp:
     assert b.handle_command('forget memory 1')['ok']
     assert b.handle_command('calculate 2 + 3')['reply'].endswith('5')
     assert b.handle_app_command('calculate 2 + 3') == b.handle_command('calculate 2 + 3')
-    assert [tool['name'] for tool in b.list_tools()] == ['reminders', 'documents', 'memory', 'everyday', 'apps']
+    assert [tool['name'] for tool in b.list_tools()] == ['briefing', 'reminders', 'documents', 'memory', 'everyday', 'apps']
+    assert 'Your daily briefing' in b.handle_command('daily briefing')['reply']
     assert b.handle_command('remind me in 1 minute to stretch')['ok']
     assert b.due_reminders()=={'ok':True,'reminders':[]}
     assert b.dismiss_reminder(1)['ok']

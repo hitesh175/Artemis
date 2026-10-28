@@ -44,6 +44,13 @@ def verify():
         assert bridge._voice._thread is None
         assert window.evaluate_js("['index-documents','check-services','stop-reply','reminder-inbox'].every(id=>Boolean(document.getElementById(id)))")
         assert window.evaluate_js("typeof readArtemisStream==='function'")
+        assert window.evaluate_js("Boolean(document.getElementById('daily-briefing'))")
+        window.evaluate_js("document.getElementById('daily-briefing').click()")
+        for _ in range(60):
+            if window.evaluate_js('!busy'):break
+            time.sleep(.1)
+        assert window.evaluate_js("document.querySelector('#messages .bubble:last-child').textContent.includes('Your daily briefing')")
+        outcome['daily_briefing']=True
         # Exercise the actual page, bridge and installed persistence services.
         window.evaluate_js("void sendArtemisMessage('remember that My preferred drink is tea')")
         for _ in range(60):

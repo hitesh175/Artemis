@@ -18,6 +18,7 @@ from tool_router import Tool, ToolRouter
 from personal_memory import PersonalMemory
 from document_search import DocumentSearch
 from reminders import Reminders
+from daily_briefing import DailyBriefing
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -28,7 +29,9 @@ class WindowBridge:
         self._memory = PersonalMemory()
         self._documents = DocumentSearch()
         self._reminders = Reminders()
+        self._briefing = DailyBriefing(self._everyday,self._reminders)
         self._tools = ToolRouter([
+            Tool('briefing', 'On-demand weather and reminder summary for today', self._briefing.execute),
             Tool('reminders', 'Create, list and cancel persistent one-shot reminders', self._reminders.execute),
             Tool('documents', 'Search, list and remove explicitly indexed documents', self._documents.execute),
             Tool('memory', 'Explicitly save, list, search, edit and forget personal facts', self._memory.execute),

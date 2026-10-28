@@ -63,7 +63,7 @@ Python environments and model weights. No install or deployment is performed.
 
 The shared deterministic tool interface is implemented in app/desktop/tool_router.py.
 The desktop bridge exposes handle_command and list_tools, retaining handle_app_command
-for compatibility. Tools run in order: reminders, document search, personal memory, everyday (weather, date/time,
+for compatibility. Tools run in order: daily briefing, reminders, document search, personal memory, everyday (weather, date/time,
 arithmetic, help), then apps. Unknown requests continue to chat; tool failures stop dispatch. Responses
 include handled, reply, spoken_reply, tool and sources, preserving existing choices
 and confirmation tokens. Existing tools default spoken_reply to their display text
@@ -76,7 +76,7 @@ or multi-step task runner has been introduced.
 1. Bounded task execution after tool permissions and cancellation are designed.
 2. Improve speech interruption and measure voice latency.
 3. Validate native desktop behavior and real-model citation quality.
-4. Daily briefings, building on persistent reminders.
+4. Optional scheduled briefings and calendar integration after on-demand validation.
 
 ## Streamed replies and service checks
 
@@ -222,5 +222,28 @@ There are no recurring reminders, automatic task execution or external messages.
 Tests cover timing boundaries, restart catch-up, persistence, acknowledgement,
 cancellation, concurrency, malformed dates, explicit offsets, visual inbox behavior
 and safe text rendering. The installed hidden desktop check verified the overdue inbox. User-visible timing and minimized-window behavior still need observation.
+
+## Daily briefings
+
+Say or type `daily briefing` or `morning briefing`, or open Settings → Daily briefing
+→ Get daily briefing. The result contains the local date, weather for the saved
+city, overdue reminders and reminders due later today. Up to five reminders in
+each group are shown; `show reminders` provides the rest. It does not dismiss or
+change reminders. Upcoming-today reminders use the computer's local date.
+
+The briefing is assembled from real tool results, without an LLM. Weather uses
+the existing Open-Meteo service and five-minute cache, with its data timestamp and
+source shown in chat. Spoken output omits weather source/timestamp details and
+follows the normal speech setting and Quiet mode. Missing city configuration prompts
+you to set it. Weather or reminder failures are reported independently, preserving
+the other available section. Reminder failure is never presented as an empty list.
+
+Briefings run only when requested. They do not start on launch, run on a schedule,
+connect email or calendars, or invent news. Local date/reminder summaries work
+without Ollama; weather still needs internet. Tests cover date boundaries, partial
+failure, source attribution and reminder preservation, plus the installed button.
+
+This feature is installed in Desktop/Artemis. Its rollback backup is
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-172203`.
 
 

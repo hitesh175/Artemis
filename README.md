@@ -246,4 +246,29 @@ failure, source attribution and reminder preservation, plus the installed button
 This feature is installed in Desktop/Artemis. Its rollback backup is
 `C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-172203`.
 
+## Ollama model selection
+
+Settings → Local intelligence → Refresh models lists models reported by the local
+Ollama service. Choose one and click Use selected model. Loading the settings does
+not change the selection. `artemis` remains the default, including its `:latest`
+alias. No model is downloaded or removed by this interface.
+
+Selection is saved in app/data/model-settings.sqlite3 and applies to subsequent
+chat requests, including streamed replies. An already running request keeps its
+original model. Weather, reminders, memory commands, document search and daily
+briefings continue to use deterministic tools independently of chat model choice.
+Service diagnostics report the selected model and whether it is present.
+
+The app talks only to its fixed localhost Ollama endpoint. It does not silently
+switch models when one is missing, accept arbitrary inference server URLs, or
+overwrite the selection after a failed/offline change. Model capabilities and
+inference behavior depend on the selected Ollama model; live integration has been
+verified with artemis. Existing chats and model files are preserved.
+
+Installed update backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261028-172938`.
+Automated checks cover persistence, next-request model routing, invalid and missing
+models, offline preservation, corrupt settings, and selector behavior. Installed
+WebView2 checks use isolated settings so the user's selection is not changed.
+
 

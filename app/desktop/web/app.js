@@ -177,7 +177,7 @@ $('check-services').addEventListener('click',async()=>{
     const status=await response.json();
     const api=window.pywebview?.api;
     const voice=await api?.voice_status?.(),speech=await api?.speech_status?.();
-    $('service-status').textContent=`Ollama: ${status.ollama}. Model: ${status.model}. Recognition: ${voice?.state||'desktop app required'}. Speech: ${speech?.error|| (speech ? (speech.playing?'playing':speech.enabled?'enabled':'muted'):'desktop app required')}. Audio devices have not been tested.`;
+    $('service-status').textContent=`Ollama: ${status.ollama}. Model: ${status.model} (${status.selected_model || 'unknown'}). Recognition: ${voice?.state||'desktop app required'}. Speech: ${speech?.error|| (speech ? (speech.playing?'playing':speech.enabled?'enabled':'muted'):'desktop app required')}. Audio devices have not been tested.`;
   }catch(err){$('service-status').textContent='Could not check services: '+err.message;}
   finally{button.disabled=false;}
 });

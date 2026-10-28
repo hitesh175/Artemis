@@ -23,9 +23,10 @@ main.PersonalMemory=isolated(main.PersonalMemory,'memory.sqlite3')
 main.DocumentSearch=isolated(main.DocumentSearch,'documents.sqlite3')
 main.Reminders=isolated(main.Reminders,'reminders.sqlite3')
 main.Everyday=isolated(main.Everyday,'weather.json')
+main.ModelSettings=isolated(main.ModelSettings,'models.sqlite3')
 bridge=main.WindowBridge()
 bridge._mini_file=temp/'mini.json'
-http=server.make_server(memory=bridge._memory,documents=bridge._documents)
+http=server.make_server(memory=bridge._memory,documents=bridge._documents,model_settings=bridge._models)
 threading.Thread(target=http.serve_forever,daemon=True).start()
 window=webview.create_window('Artemis installed integration check',url=f'http://127.0.0.1:{http.server_port}',
     js_api=bridge,width=1100,height=800,min_size=(260,260),hidden=True,frameless=True,easy_drag=False)
@@ -44,6 +45,19 @@ def verify():
         assert bridge._voice._thread is None
         assert window.evaluate_js("['index-documents','check-services','stop-reply','reminder-inbox'].every(id=>Boolean(document.getElementById(id)))")
         assert window.evaluate_js("typeof readArtemisStream==='function'")
+        window.evaluate_js("document.getElementById('refresh-models').click()")
+        for _ in range(60):
+            if window.evaluate_js("!document.getElementById('refresh-models').disabled"):break
+            time.sleep(.1)
+        model_status=window.evaluate_js("document.getElementById('model-status').textContent")
+        assert model_status.startswith('Selected: artemis'),model_status
+        window.evaluate_js("document.getElementById('save-model').click()")
+        for _ in range(60):
+            if window.evaluate_js("!document.getElementById('save-model').disabled"):break
+            time.sleep(.1)
+        assert bridge._models.get()=='artemis'
+        assert window.evaluate_js("document.getElementById('model-status').textContent.startsWith('Saved:')")
+        outcome['model_selection']=True
         assert window.evaluate_js("Boolean(document.getElementById('daily-briefing'))")
         window.evaluate_js("document.getElementById('daily-briefing').click()")
         for _ in range(60):

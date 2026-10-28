@@ -6,6 +6,7 @@ from urllib import request
 from urllib.error import URLError
 from personal_memory import PersonalMemory
 from document_search import DocumentSearch
+from model_settings import ModelSettings
 BASE=Path(__file__).resolve().parent
 ROOT=BASE/'web'
 SYSTEM='You are Artemis, a concise, warm Windows assistant. The desktop client handles explicit installed-app opening, live weather, local date/time and basic arithmetic through separate deterministic services. Users can ask what is today weather, weather tomorrow, what time is it, calculate 25 * 4, or open Notepad. Weather requires internet and a saved city; never invent live weather. You provide conversation and explanations; never claim to execute OS actions yourself. The client supports Mini, Quiet mode, Whisper, Isabella, and explicitly enabled hands-free. Do not use emoji unless asked.'
@@ -24,16 +25,21 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
     def do_GET(self):
         if self.path=='/api/diagnostics':
+            try:selected=self.server.model_settings.get()
+            except Exception:
+                self.reply(200,{'ok':False,'ollama':'not checked','model':'settings unavailable','selected_model':None});return
             try:
                 with request.urlopen('http://127.0.0.1:11434/api/tags',timeout=3) as response:
                     models=json.load(response)['models']
-                ready=any(m.get('name') in ('artemis','artemis:latest') for m in models)
-                self.reply(200,{'ok':ready,'ollama':'reachable','model':'ready' if ready else 'not installed'})
+                ready=any(m.get('name') in (selected,selected+':latest') for m in models)
+                self.reply(200,{'ok':ready,'ollama':'reachable','model':'ready' if ready else 'not installed','selected_model':selected})
             except Exception:
-                self.reply(200,{'ok':False,'ollama':'unavailable','model':'not checked'})
+                self.reply(200,{'ok':False,'ollama':'unavailable','model':'not checked','selected_model':selected})
             return
         if self.path in ('/api/health','/api/health?'):
-            self.reply(200,{'ok':True,'mode':'chat-only','model':'artemis'});return
+            try:self.reply(200,{'ok':True,'mode':'chat-only','model':self.server.model_settings.get()})
+            except Exception:self.reply(503,{'ok':False,'error':'Model settings unavailable'})
+            return
         if self.path.startswith('/assets/'):
             fname=self.path[len('/assets/'):]
             if fname not in ('lunar_a.png','design_reference.png','orb_native_fallback.png'):
@@ -68,7 +74,10 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception:
                 self.reply(503,{'error':'The local document index is unavailable. Please check it before retrying.'})
                 return
-            req_data=json.dumps({'model':'artemis','stream':stream,'think':False,'messages':[{'role':'system','content':SYSTEM}]+safe+memory_context+document_context+[{'role':'user','content':message.strip()}],'options':{'num_predict':320}}).encode()
+            try:selected=self.server.model_settings.get()
+            except Exception:
+                self.reply(503,{'error':'The saved model setting could not be read. Check Settings → Local intelligence.'});return
+            req_data=json.dumps({'model':selected,'stream':stream,'think':False,'messages':[{'role':'system','content':SYSTEM}]+safe+memory_context+document_context+[{'role':'user','content':message.strip()}],'options':{'num_predict':320}}).encode()
             req=request.Request('http://127.0.0.1:11434/api/chat',data=req_data,headers={'Content-Type':'application/json'},method='POST')
             contacting_model=True
             with request.urlopen(req,timeout=100) as result:
@@ -113,7 +122,7 @@ class Handler(SimpleHTTPRequestHandler):
                 self.reply(400,{'error':str(exc)})
             else:
                 print('[Chat service]',type(exc).__name__,str(exc)[:300],flush=True)
-                self.reply(502,{'error':'Artemis could not get a reply from Ollama. Check that Ollama is running and the artemis model is installed, then send your message again.'})
+                self.reply(502,{'error':'Artemis could not get a reply from Ollama. Check that Ollama is running and your selected model is installed, then try again.'})
     def event(self,payload):
         self.wfile.write((json.dumps(payload,ensure_ascii=False)+'\n').encode('utf-8'))
         self.wfile.flush()
@@ -122,10 +131,11 @@ class Handler(SimpleHTTPRequestHandler):
         data=json.dumps(payload,ensure_ascii=False).encode('utf-8')
         self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
 
-def make_server(port=0, memory=None, documents=None):
+def make_server(port=0, memory=None, documents=None, model_settings=None):
     server=ThreadingHTTPServer(('127.0.0.1',port),Handler)
     server.memory=memory if memory is not None else PersonalMemory()
     server.documents=documents if documents is not None else DocumentSearch()
+    server.model_settings=model_settings if model_settings is not None else ModelSettings()
     return server
 
 

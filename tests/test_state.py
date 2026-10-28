@@ -40,7 +40,14 @@ with tempfile.TemporaryDirectory() as tmp:
     module.DocumentSearch=lambda:documents_factory(Path(tmp)/'documents.sqlite3')
     reminders_factory=module.Reminders
     module.Reminders=lambda:reminders_factory(Path(tmp)/'reminders.sqlite3',clock=lambda:1800000000)
+    models_factory=module.ModelSettings
+    module.ModelSettings=lambda:models_factory(Path(tmp)/'models.sqlite3')
     b=module.WindowBridge()
+    with patch.object(b._models,'available',return_value=['artemis:latest','example:small']):
+        assert b.get_ollama_models()['selected']=='artemis'
+        assert b.select_ollama_model('example:small')['ok']
+        assert b.get_ollama_models()['selected']=='example:small'
+        assert not b.select_ollama_model('missing')['ok']
     document=Path(tmp)/'notes.txt';document.write_text('A selected document about astronomy',encoding='utf-8')
     picker=Mock(return_value=[str(document)])
     b._window=SimpleNamespace(create_file_dialog=picker)

@@ -16,7 +16,8 @@ temp=tempfile.TemporaryDirectory()
 memory=server.PersonalMemory(Path(temp.name)/'memory.sqlite3')
 memory.save('My preferred city is Berlin')
 documents=server.DocumentSearch(Path(temp.name)/'documents.sqlite3')
-host=server.make_server(memory=memory,documents=documents)
+models=server.ModelSettings(Path(temp.name)/'models.sqlite3')
+host=server.make_server(memory=memory,documents=documents,model_settings=models)
 thread=threading.Thread(target=host.serve_forever,daemon=True);thread.start()
 base='http://127.0.0.1:'+str(host.server_port)
 # Keep a real client function; patch only the server's upstream reference.
@@ -36,6 +37,11 @@ try:
             assert json.loads(upstream.call_args.args[0].data)['stream'] is True
     with patch.object(server.request,'urlopen',return_value=io.BytesIO(b'{"message":{"content":"Hello"}}')):
         assert json.load(post({'message':'hello'}))['reply']=='Hello'
+    with patch.object(models,'available',return_value=['example:small']):models.select('example:small')
+    with patch.object(server.request,'urlopen',return_value=io.BytesIO(b'{"message":{"content":"Selected model reply"}}')) as upstream:
+        json.load(post({'message':'hello'}))
+        assert json.loads(upstream.call_args.args[0].data)['model']=='example:small'
+    with patch.object(models,'available',return_value=['artemis:latest']):models.select('artemis')
     with patch.object(server.request,'urlopen',return_value=io.BytesIO(b'{"message":{"content":"Berlin"}}')) as upstream:
         json.load(post({'message':'what is my preferred city?'}))
         messages=json.loads(upstream.call_args.args[0].data)['messages']
@@ -53,6 +59,10 @@ try:
         fake=io.BytesIO(json.dumps({'models':[{'name':n} for n in names]}).encode())
         with patch.object(server.request,'urlopen',return_value=fake):
             assert json.load(urlopen(base+'/api/diagnostics'))['model']==expected
+    with patch.object(models,'get',side_effect=ValueError('broken')),patch.object(server.request,'urlopen') as upstream:
+        try:post({'message':'hello'});raise AssertionError('Broken model setting accepted')
+        except HTTPError as error:assert error.code==503
+        upstream.assert_not_called()
     document=Path(temp.name)/'budget.txt'
     document.write_text('Budget approved: 250 euros',encoding='utf-8')
     documents.index(document)

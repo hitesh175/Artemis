@@ -19,6 +19,7 @@ from personal_memory import PersonalMemory
 from document_search import DocumentSearch
 from reminders import Reminders
 from daily_briefing import DailyBriefing
+from model_settings import ModelSettings
 
 class WindowBridge:
     """Windows control + local push-to-talk only. No application execution exposed."""
@@ -29,6 +30,7 @@ class WindowBridge:
         self._memory = PersonalMemory()
         self._documents = DocumentSearch()
         self._reminders = Reminders()
+        self._models = ModelSettings()
         self._briefing = DailyBriefing(self._everyday,self._reminders)
         self._tools = ToolRouter([
             Tool('briefing', 'On-demand weather and reminder summary for today', self._briefing.execute),
@@ -276,6 +278,17 @@ class WindowBridge:
 
     def list_tools(self):
         return self._tools.catalog()
+
+    def get_ollama_models(self):
+        try:
+            selected=self._models.get()
+            return {'ok':True,'selected':selected,'models':self._models.available()}
+        except Exception:return {'ok':False,'error':'Could not load model settings or reach Ollama. Check services and try again.'}
+
+    def select_ollama_model(self,name):
+        try:return {'ok':True,'selected':self._models.select(name)}
+        except ValueError as exc:return {'ok':False,'error':str(exc)}
+        except Exception:return {'ok':False,'error':'Could not save the model selection. Check Ollama and the local settings file.'}
 
     def due_reminders(self):
         try:return {'ok':True,'reminders':self._reminders.due()}

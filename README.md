@@ -547,4 +547,29 @@ and an isolated fresh environment on this computer. This guided setup is not an
 offline executable installer or proof of portability to a clean second computer.
 The existing installed Artemis app is unchanged by this installer work.
 
+## Settings and chat responsiveness
+
+The 29 October UI update coalesces incoming reply fragments into one text paint
+per animation frame, flushes the final text on completion/error/cancellation,
+and preserves the reading position when scrolling up during a reply. Initial
+history restoration also shares one scheduled scroll instead of measuring the
+layout for each restored bubble. Normal scrolling follows the end when already
+near it; a new message scrolls to its pending reply.
+
+Settings and chat open with a shorter transition. Closed panels skip rendering
+and cannot take keyboard input; the decorative emblem animation pauses while
+either panel is open. Existing settings and chat features remain available.
+The renderer test checks 500 fragments sharing one frame, reading-position
+preservation and final/error flushes. Native WebView2 checks verify panel
+visibility, inactive controls, paused decoration and batched text updates.
+These checks do not establish a frame-rate improvement on every computer.
+The installed end-to-end UI check also passes with a real local chat reply,
+task plans, model selection, calendar, reminders and briefings. Use
+`scripts/verify-installed.py --skip-voice-warmup` for that UI-only check. The
+combined voice-loading run on this machine hit memory/thread allocation failures;
+voice performance under that resource pressure is not validated by the UI pass.
+
+Installed rollback backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261029-110557`.
+
 

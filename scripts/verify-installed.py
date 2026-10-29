@@ -1,4 +1,5 @@
 """Hidden WebView2 integration check against installed files; isolated user state."""
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -6,6 +7,9 @@ import tempfile
 import threading
 import time
 
+parser=argparse.ArgumentParser()
+parser.add_argument('--skip-voice-warmup',action='store_true')
+args=parser.parse_args()
 ROOT=Path(r'C:\Users\kanag\Desktop\Artemis')
 WORK=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -45,15 +49,17 @@ def verify():
         assert window.evaluate_js('window.ArtemisSession.ready')
         assert window.evaluate_js('window.ArtemisSession.quiet')
         assert not window.evaluate_js('window.ArtemisHandsfree.enabled')
-        window.evaluate_js("document.getElementById('warm-voice-models').click()")
-        for _ in range(900):
-            state=bridge.voice_warmup_status()['state']
-            if state in ('ready','error'):break
-            time.sleep(.1)
-        assert bridge.voice_warmup_status()['state']=='ready',bridge.voice_warmup_status()
-        assert bridge._voice._thread is None and not bridge._speech.status()['playing']
-        assert window.evaluate_js('window.ArtemisSession.quiet')
-        outcome['silent_voice_warmup']=bridge.voice_warmup_status()
+        if not args.skip_voice_warmup:
+            window.evaluate_js("document.getElementById('warm-voice-models').click()")
+            for _ in range(900):
+                state=bridge.voice_warmup_status()['state']
+                if state in ('ready','error'):break
+                time.sleep(.1)
+            assert bridge.voice_warmup_status()['state']=='ready',bridge.voice_warmup_status()
+            assert bridge._voice._thread is None and not bridge._speech.status()['playing']
+            assert window.evaluate_js('window.ArtemisSession.quiet')
+            outcome['silent_voice_warmup']=bridge.voice_warmup_status()
+        else:outcome['silent_voice_warmup']='Skipped for UI-only verification'
         from datetime import datetime
         calendar=temp/'test-calendar.ics'
         calendar.write_text('BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nUID:artemis-check\nDTSTART;VALUE=DATE:'+datetime.now().strftime('%Y%m%d')+'\nSUMMARY:Artemis calendar check\nEND:VEVENT\nEND:VCALENDAR\n',encoding='utf-8')

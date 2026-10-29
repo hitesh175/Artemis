@@ -1,0 +1,9 @@
+/* Keep panel interactions independent of decorative SVG repainting. */
+.sidepanel{transition:transform .16s ease-out;contain:layout style}
+.sidepanel[aria-hidden="true"]{visibility:hidden;content-visibility:hidden;pointer-events:none}
+.sidepanel.open{visibility:visible;content-visibility:visible}
+body.panel-open .icon-energy path,body.panel-open .icon-halo{animation-play-state:paused!important}
+body.panel-open .orb-stage{filter:none}
+.conversation,.settings-content{min-height:0;overscroll-behavior:contain;scroll-behavior:auto}
+.bubble{flex-shrink:0}
+@media(prefers-reduced-motion:reduce){.sidepanel{transition:none}}

@@ -27,6 +27,8 @@ subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/calendar.js')], c
 subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/voice-warmup.js')], check=True)
 subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/task-plans.js')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_chat_stream.cjs')], check=True)
+subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web/chat-renderer.js')], check=True)
+subprocess.run(['node', str(ROOT / 'tests/test_chat_renderer.cjs')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_reminders_ui.cjs')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_model_settings_ui.cjs')], check=True)
 subprocess.run(['node', str(ROOT / 'tests/test_task_plans_ui.cjs')], check=True)

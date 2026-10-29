@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import windows_setup as setup
@@ -30,6 +31,8 @@ class SetupTests(unittest.TestCase):
         self.calls=[]
         self.ready=patch.object(setup,'readiness',return_value={'test':True})
         self.ready.start();self.addCleanup(self.ready.stop)
+        self.disk=patch.object(setup.shutil,'disk_usage',return_value=SimpleNamespace(free=4*1024**3))
+        self.disk.start();self.addCleanup(self.disk.stop)
 
     def save_manifest(self):
         (self.source/'MANIFEST.json').write_text(json.dumps(self.manifest),encoding='utf-8')
@@ -77,6 +80,12 @@ class SetupTests(unittest.TestCase):
 
     def test_destination_inside_release_refused(self):
         with self.assertRaises(ValueError):setup.install(self.source,self.source/'nested',runner=self.runner)
+
+    def test_low_disk_space_refused_before_writing(self):
+        with patch.object(setup.shutil,'disk_usage',return_value=SimpleNamespace(free=1024)):
+            with self.assertRaisesRegex(ValueError,'free space'):
+                setup.install(self.source,self.target,runner=self.runner)
+        self.assertFalse(self.target.exists())
 
 
 if __name__=='__main__':unittest.main()

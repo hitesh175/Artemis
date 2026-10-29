@@ -17,10 +17,9 @@ Desktop installation taken on 28 October 2026. SOURCE-BASELINE.json records the
 original file hashes. The installed application remains at Desktop/Artemis and
 was preserved during initial consolidation; the later feature update is now installed as recorded below.
 
-The existing Artemis-* folders, ZIP updates and baseline/ are historical reference
-packages. They remain in place and are excluded from the new Git repository.
-Their README claims do not establish current application behavior. The inactive
-music service and older wake-word/orb experiments are excluded from app/.
+Historical Artemis-* folders, old ZIP updates, baseline/ and temporary installer
+copies were removed during the 29 October cleanup. Git retains the source history.
+The inactive music service and older wake-word/orb experiments are excluded from app/.
 
 ## Development and verification
 
@@ -37,7 +36,8 @@ python -m venv .venv
 requirements-baseline.lock captures the entire existing Python environment for
 reference, including legacy packages. It is not a minimal dependency lock or a
 verified clean-machine install. requirements.txt lists the active direct runtime
-dependencies; fresh-environment installation remains to be validated.
+dependencies. Guided setup was tested in a fresh environment on the development
+computer; a clean second Windows computer still needs validation.
 
 ## Running a development copy
 
@@ -49,8 +49,9 @@ existing private conversation history is not copied.
 Ollama must be running with the `artemis` model. Microsoft Edge WebView2 is required.
 For Kokoro, set ARTEMIS_KOKORO_DIR to a directory containing kokoro-v1.0.onnx and
 voices-v1.0.bin. Piper fallback expects models/voices/en_GB-alba-medium.onnx and
-its configuration under app/. Whisper may download its configured model on first
-use; pre-cache it for offline operation. Model weights are not included.
+its configuration under app/. Whisper uses cached models by default; explicitly
+download the model with setup/download-whisper.py before using voice recognition.
+Model weights are not included.
 
 ## Packaging
 
@@ -583,5 +584,30 @@ visually inspected, including the scheduled briefing controls.
 
 Installed rollback backup:
 `C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261029-111533`.
+
+## Storage cleanup and GitHub layout
+
+The current repository contains app/, scripts/, setup/ and tests/. The old GitHub
+root layout remains in earlier commits; runtime data, model weights, Python
+environments and UI backups are excluded from the current source tree.
+
+On 29 October, cleanup removed 68 obsolete build/test/backup paths (about 605 MiB)
+and unused interface, wake-word and legacy speech packages outside the current
+runtime dependency list (about 1,132 MiB). Total removed files were about 1.82 GB.
+The latest UI rollback backup was retained. Older backup paths
+mentioned in the development history above are historical and were removed.
+Active voice models, installed application files, personal data and both local
+Git histories were retained. The legacy Git copy has an unpublished backup branch,
+so it was compacted rather than deleted. Other projects in this folder were left
+alone. The local output/cleanup-report.json records the exact removed paths and
+sizes; it is not published to GitHub.
+The cleaned environment passes dependency checks, regression tests, native UI/chat
+checks and silent loading of both cached voice models. These checks do not use
+the microphone or play audio.
+
+scripts/cleanup-artifacts.ps1 previews known generated leftovers by default. Use
+-Apply to delete them, and -IncludeInstalledBackups to keep only the latest
+rollback backup. It checks resolved path containment and refuses linked targets.
+It does not uninstall Python packages or remove active models/data.
 
 

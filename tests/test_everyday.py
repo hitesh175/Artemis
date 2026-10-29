@@ -1,7 +1,7 @@
 import sys,tempfile
 from pathlib import Path
 from unittest.mock import patch
-sys.path.insert(0,str(Path('Artemis-Weather-Routing').resolve()))
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'app/desktop'))
 from everyday import Everyday,arithmetic
 assert arithmetic('(25+15)/2')==20
 for bad in ('__import__("os")','9**999','(1).__class__','True+2','1/0'):

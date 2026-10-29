@@ -10,6 +10,7 @@ import time
 parser=argparse.ArgumentParser()
 parser.add_argument('--root',type=Path,required=True)
 parser.add_argument('--visible',action='store_true',help='Show the test window to verify real animation frames')
+parser.add_argument('--review-settings',action='store_true',help='Keep an isolated Settings preview open for visual review')
 args=parser.parse_args()
 root=args.root.resolve(strict=True)
 work=Path(__file__).resolve().parents[1]/'output'
@@ -33,7 +34,7 @@ bridge._mini_file=temp/'mini.json'
 http=server.make_server(memory=bridge._memory,documents=bridge._documents,model_settings=bridge._models)
 threading.Thread(target=http.serve_forever,daemon=True).start()
 window=webview.create_window('Artemis fresh setup check',url=f'http://127.0.0.1:{http.server_port}',
-                            js_api=bridge,hidden=not args.visible,width=1100,height=800)
+                            js_api=bridge,hidden=not (args.visible or args.review_settings),width=1100,height=800)
 bridge._window=window
 outcome={'passed':False,'root':str(root),'microphone_used':False,'audio_played':False}
 
@@ -44,6 +45,10 @@ def verify():
             if window.evaluate_js('Boolean(window.ArtemisSession?.ready)'):break
             time.sleep(.1)
         assert window.evaluate_js('window.ArtemisSession.ready')
+        if args.review_settings:
+            window.evaluate_js("openPanel('settings')")
+            outcome['passed']=True
+            return
         window.evaluate_js("openPanel('settings')")
         assert window.evaluate_js("getComputedStyle(document.getElementById('settings-panel')).visibility==='visible'")
         assert window.evaluate_js("document.getElementById('chat-panel').inert")
@@ -72,7 +77,8 @@ def verify():
     except BaseException:
         import traceback
         outcome['error']=traceback.format_exc()
-    finally:window.destroy()
+    finally:
+        if not args.review_settings:window.destroy()
 
 try:webview.start(verify,gui='edgechromium',debug=False,private_mode=True)
 finally:

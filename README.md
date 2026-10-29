@@ -572,4 +572,16 @@ voice performance under that resource pressure is not validated by the UI pass.
 Installed rollback backup:
 `C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261029-110557`.
 
+## Settings appearance
+
+Settings now uses matching rounded controls, dark text/time fields, consistent
+type sizes and section cards. The briefing time and Save controls wrap on narrow
+windows. Task-plan, reminder and memory command instructions remain available in
+expandable “Commands and details” help. Existing control IDs, input attributes,
+settings and feature handlers are preserved. The native Settings preview was
+visually inspected, including the scheduled briefing controls.
+
+Installed rollback backup:
+`C:\Users\kanag\Desktop\Artemis\ui-backups\before-integrated-features-20261029-111533`.
+
 

@@ -34,7 +34,8 @@ bridge._mini_file=temp/'mini.json'
 http=server.make_server(memory=bridge._memory,documents=bridge._documents,model_settings=bridge._models)
 threading.Thread(target=http.serve_forever,daemon=True).start()
 window=webview.create_window('Artemis fresh setup check',url=f'http://127.0.0.1:{http.server_port}',
-                            js_api=bridge,hidden=not (args.visible or args.review_settings),width=1100,height=800)
+                            js_api=bridge,hidden=not (args.visible or args.review_settings),width=1100,height=800,
+                            frameless=True,easy_drag=False)
 bridge._window=window
 outcome={'passed':False,'root':str(root),'microphone_used':False,'audio_played':False}
 

@@ -1,190 +1,106 @@
-# Artemis project architecture
+# Artemis architecture
 
-Inspected against the installed application on 23 October 2026.
+Current application structure, updated 29 October 2026. All source paths below are relative to `app/`; an installed copy places those files directly in its application folder.
 
-## 1. System overview
+## System boundaries
 
-Artemis is a Windows desktop assistant. HTML/CSS/JavaScript runs inside Microsoft Edge WebView2; Python owns microphone access, speech, Windows controls, app launching and everyday tools. General conversation uses a local Ollama model. Live weather uses Open-Meteo over the internet.
+Artemis is a Windows desktop application with three cooperating parts: a WebView2 interface, Python desktop services, and a local Ollama service. Voice models and personal data are separate from the source distribution.
 
 ```mermaid
 flowchart TB
-    User[User: keyboard or microphone]
-    Shortcut[Artemis desktop / Start shortcut]
-    Entry[Artemis.pyw → run_logged.py]
-    Main[desktop/main.py]
-    UI[WebView2 desktop interface\nHTML / CSS / JavaScript]
-    Bridge[WindowBridge\npywebview.api]
-    HTTP[Local HTTP server\n127.0.0.1 : assigned port]
-    Router[Local command routing]
-    Daily[Everyday\nweather · time · arithmetic]
-    Apps[AppLauncher\ninstalled app resolver]
-    Windows[Windows applications]
-    Ollama[Ollama\n127.0.0.1:11434\nmodel: artemis]
-    Weather[Open-Meteo HTTPS\ngeocoding + forecast]
-    STT[WhisperInput\nsounddevice → faster-whisper]
-    TTS[SpeechOutput\nKokoro Isabella / Piper fallback]
-    Speaker[Audio output]
-    Disk[Local JSON state + logs]
-    Shortcut --> Entry --> Main
-    Main --> UI
-    Main --> HTTP
-    Main --> Bridge
-    HTTP -->|serves interface and assets| UI
-    User --> UI
-    UI <-->|native method calls / status polling| Bridge
-    Bridge --> Router
-    Router --> Daily
-    Router --> Apps --> Windows
-    Daily --> Weather
-    UI -->|unhandled text: POST /api/chat| HTTP
-    HTTP --> Ollama
-    Ollama --> HTTP
-    HTTP -->|reply| UI
-    Bridge --> STT
-    STT -->|transcript via status| UI
-    Bridge --> TTS --> Speaker
-    Bridge <--> Disk
+    Entry[Artemis.pyw / run_logged.py] --> Desktop[desktop/main.py]
+    Desktop --> UI[WebView2 interface]
+    Desktop --> Bridge[WindowBridge]
+    Desktop --> HTTP[Local HTTP server]
+    UI <-->|Native method calls| Bridge
+    UI <-->|Assets and streamed chat| HTTP
+    HTTP <-->|Local chat API| Ollama[Ollama]
+    Bridge --> Router[ToolRouter]
+    Router --> Tools[Calendar / briefing / reminders / documents / memory / everyday / apps]
+    Tools --> Storage[SQLite and JSON]
+    Tools --> Weather[Open-Meteo]
+    Tools --> Windows[Explicit app launching]
+    Bridge --> Recognition[WhisperInput]
+    Bridge --> Speech[SpeechOutput]
 ```
 
-There are two communication paths: browser requests to the local HTTP server for chat/assets, and the native pywebview bridge for desktop capabilities. The HTTP chat server does not execute Windows commands.
+The chat server does not execute Windows commands. Model-generated text cannot invoke arbitrary tools or write personal memory directly.
 
-## 2. Startup and window lifecycle
+## Startup and interface
 
-1. The Artemis shortcut starts the virtual environment's `pythonw.exe` with `Artemis.pyw`.
-2. `Artemis.pyw` sets the working directory and invokes `run_logged.py`.
-3. `run_logged.py` takes a single-instance file lock and redirects diagnostics into a timestamped log.
-4. `desktop/main.py` starts a localhost-only threaded HTTP server on an available port.
-5. It creates `WindowBridge` and a frameless, resizable pywebview window, explicitly using Edge Chromium/WebView2.
-6. WebView2 loads `desktop/web/index.html`; JavaScript restores saved preferences and conversation.
-7. Native window operations are marshalled onto the Windows UI thread. Closing the app attempts to flush saved state; the server shuts down when the desktop exits.
+1. `Artemis.pyw` starts `run_logged.py` without a console window.
+2. The launcher takes a single-instance file lock and opens a local diagnostic log.
+3. `desktop/main.py` constructs the services, starts a server bound to localhost on an assigned port, and opens the WebView2 window.
+4. The interface restores saved preferences and bounded conversation history through the native bridge.
+5. Recording, model preparation, and synthesis start only through their respective controls. New installations start with Quiet mode on and hands-free off.
 
-Full, Mini and compact chat are modes of the same native window. Mini pinning and position are handled by Python. Hands-free starts OFF on every launch.
+The interface lives in `desktop/web/`. Full, Mini, and compact chat layouts share the same services. Reply fragments are coalesced per animation frame. Closed panels skip rendering, and decorative animation pauses while a panel is open.
 
-## 3. Main components
+## Text request flow
 
-Paths below are relative to `C:\Users\kanag\Desktop\Artemis`.
+The interface sends a message to `WindowBridge.handle_command`. The deterministic router checks tools in this order:
 
-| Component | File | Responsibility |
-|---|---|---|
-| Launcher | `Artemis.pyw` | Console-free application entry and startup error dialog |
-| Diagnostics | `run_logged.py` | Single-instance lock, stdout/stderr logs, fault diagnostics |
-| Desktop host | `desktop/main.py` | WebView2 setup, bridge, window controls, service coordination |
-| Local web server | `desktop/server.py` | Static assets, health endpoint, validated Ollama chat proxy |
-| Main interface | `desktop/web/app.js` | Chat interaction, command routing, voice status, display states |
-| Presentation | `desktop/web/index.html`, CSS files | Layout, settings, panels, theme and responsive styling |
-| Animated identity | `desktop/web/icon-mode.js` | Artemis icon animation and mode appearance |
-| Session | `desktop/web/session.js` | Restore/save preferences and conversation, Quiet behavior |
-| Mini interface | `desktop/web/mini.js` | Full/Mini/chat controls and compact layouts |
-| Custom window chrome | `desktop/web/window-chrome.js` | Minimize, maximize/restore, close and dragging UI |
-| Hands-free controller | `desktop/web/handsfree.js` | Repeated listening turns, playback wait, status and stopping |
-| App settings | `desktop/web/app-commands.js` | Installed app discovery UI |
-| Everyday settings | `desktop/web/daily.js` | Weather city lookup and selection UI |
-| Recognition | `desktop/whisper_input.py` | Capture audio, load faster-whisper, transcribe, expose status |
-| End-of-turn detection | `desktop/speech_endpoint.py` | RMS/noise-based speech and pause detection |
-| Speech coordinator | `desktop/speech_output.py` | Enable/mute speech, background speech worker, playback status |
-| Speech engine | `artemis/voice.py` | Kokoro Isabella synthesis, Piper fallback and audio playback |
-| App commands | `desktop/app_launcher.py` | Parse explicit launch requests, match apps, confirmation tokens |
-| App discovery | `artemis/artemis_app_resolver_723.py` | Reused Windows installed-app/shortcut resolver |
-| Everyday tools | `desktop/everyday.py` | Weather, city selection, date/time, bounded arithmetic, capability help |
-| Saved session | `desktop/desktop_state.py` | Validate and atomically save bounded preferences/history |
+1. Imported calendar queries.
+2. Daily briefing.
+3. Reminders.
+4. Indexed documents.
+5. Explicit personal memory.
+6. Everyday weather, date/time, arithmetic, and help.
+7. Explicit app launching.
 
-## 4. Request routing
+A handled response includes display text and may include sources, choices, or a confirmation token. A handled response can still report a failure; task plans check success before advancing. Unrecognized text continues to the local HTTP chat endpoint.
 
-```mermaid
-flowchart TD
-    Input[Typed message or recognized transcript] --> Send[app.js send message]
-    Send --> Everyday[Bridge: Everyday.execute]
-    Everyday -->|recognized daily request| DailyReply[Weather / date / time / calculation reply]
-    Everyday -->|unhandled| Launch[AppLauncher.execute]
-    Launch -->|exact app| Open[Launch registered application]
-    Launch -->|close match| Confirm[Show explicit confirmation choice]
-    Confirm -->|user confirms valid token| Open
-    Launch -->|unhandled| Chat[POST /api/chat]
-    Chat --> Model[Local Ollama artemis model]
-    Model --> Reply[Display reply and save conversation]
-    DailyReply --> Reply
-    Open --> Reply
-    Reply --> Enabled{Speech enabled and Quiet off?}
-    Enabled -->|yes| Isabella[Speak through native bridge]
-```
+The chat server retrieves relevant saved facts/document excerpts, treats them as untrusted reference material, and streams the selected Ollama model's answer to the interface. Citations are model output and require judgment; retrieval and prompt instructions do not guarantee correctness. Stop reply cancels the client stream. Upstream computation may continue until cancellation is detected or a read timeout expires.
 
-Deterministic tools run before the language model. The model is conversational; it does not decide which raw operating-system command to execute. Ambiguous app matches require a clickable confirmation with an expiring, single-use token.
+## Tools and storage
 
-Weather uses the saved city and a five-minute cache. City searches use Open-Meteo geocoding; forecasts use the selected coordinates. Today/tomorrow are supported. Failed retrieval reports an error instead of inventing weather.
+| Component | Responsibility |
+| --- | --- |
+| `tool_router.py` | Ordered, bounded deterministic dispatch |
+| `personal_memory.py` | Explicit fact creation, search, update, and deletion |
+| `document_search.py` / `document_extract.py` | Selected-file snapshots, FTS5 search, and source locators |
+| `reminders.py` | Persistent one-time reminders and acknowledgement |
+| `calendar_store.py` | Imported `.ics` snapshots and event expansion |
+| `daily_briefing.py` / `briefing_schedule.py` | Combined briefing and opt-in daily visual notice |
+| `local_time.py` | Rule-aware local-day calculations, including DST |
+| `app_launcher.py` | Installed-app discovery, matching, and confirmation |
+| `task_plans.py` | Reviewed sequences of supported deterministic tasks |
+| `model_settings.py` | Persisted Ollama model selection |
+| `desktop_state.py` | Validated preferences and up to 100 saved conversation messages |
+| `performance_log.py` | Bounded in-memory timings without message/audio content |
 
-## 5. Voice and hands-free flow
+State is stored under the application folder's `data/` directory using SQLite and JSON. Logs are stored under `logs/`. Data is not encrypted by the application. Removing an indexed document snapshot does not delete its original file; clearing chat does not delete memory or indexed documents.
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant UI as Interface / handsfree.js
-    participant B as WindowBridge
-    participant W as WhisperInput
-    participant R as Tool router / Ollama
-    participant S as SpeechOutput / Isabella
-    U->>UI: Enable hands-free
-    UI->>B: set_handsfree(true)
-    UI->>B: start_handsfree_turn()
-    B->>W: start(auto_stop=True)
-    U->>W: Speak into microphone
-    W->>W: Detect pause and transcribe locally
-    UI->>B: Poll voice_status()
-    B-->>UI: Transcript and revision
-    UI->>R: Send transcript through message routing
-    R-->>UI: Reply
-    UI->>B: speak_reply(reply)
-    B->>S: Synthesize and play
-    UI->>B: Poll speech_status()
-    B-->>UI: Playback finished
-    UI->>B: Start next listening turn
-```
+## Voice flow
 
-Manual recording uses the same capture/transcription service: click to start, click again to stop and transcribe. Auto-send controls whether a recognized transcript is immediately submitted.
+`WhisperInput` captures audio through sounddevice and transcribes with faster-whisper. The default model is cached `base.en` on CPU with int8 computation. Model/device configuration can be overridden; missing models are not downloaded automatically during ordinary recording.
 
-Whisper defaults in code are `base.en`, CPU and int8; environment variables may override the model and device. Models are loaded lazily. Hands-free uses pause detection, checks that the transcript has been consumed, and waits for speech playback before recording again. Quiet mode blocks new recording and spoken replies. Audio already playing may finish.
+`SpeechOutput` prepares Kokoro first, with Piper fallback, and plays through an owned output stream. Stop speaking interrupts the owned stream and suppresses pending playback after synthesis. Quiet mode blocks recording and spoken replies and stops current speech.
 
-## 6. Data and external dependencies
+Hands-free mode waits for a speech endpoint, submits the transcript, waits for the answer and playback, then starts the next turn. It is opt-in and is not a wake-word service. Cached voice-model preparation is also explicit and does not capture, play, or download audio/models.
 
-| Location/service | Stored or exchanged information |
-|---|---|
-| `data/desktop-state.json` | Preferences and bounded conversation history: up to 100 messages |
-| `data/mini-window.json` | Mini position and pin preference |
-| `data/everyday.json` | Selected weather city and coordinates |
-| `logs/desktop-*.log` | Runtime diagnostics and errors |
-| `logs/desktop.lock` | Single-instance locking file |
-| `desktop/assets/` | App icon and visual assets |
-| `models/`, `voice_test/`, model caches | Speech model assets; actual lookup depends on engine/configuration |
-| Ollama localhost API | Conversation text and recent context |
-| Open-Meteo HTTPS APIs | City search text, selected coordinates, returned weather |
-| `ui-backups/` | Rollback snapshots from installed updates |
+Microphone and output quality depend on model availability, hardware, drivers, and resource pressure. See the [validation status](README.md#validation--next-steps).
 
-Microphone transcription and speech synthesis run locally with installed models. General chat requires the local Ollama service. Live weather requires internet. Local JSON files are ordinary application files; the architecture does not provide encrypted conversation storage.
+## Reviewed task plans
 
-## 7. Threading and stability boundaries
+A plan contains two to four supported steps and requires a Run click. Read operations run in sequence; an app launch can appear only as the final step. Ambiguous matches require a separate confirmation. Memory writes, reminder creation, arbitrary shell commands, and model-directed execution are not supported inside plans.
 
-- The native WebView2 window runs on the GUI thread. Bridge window operations use `_on_ui_thread` rather than directly touching native window properties from worker threads.
-- The HTTP server runs in a background thread and handles requests with `ThreadingHTTPServer`.
-- Audio capture/transcription and speech synthesis/playback run in background workers. The interface polls status and revision numbers.
-- Locks coordinate hands-free changes, shared state and Mini persistence; JSON state writes use atomic replacement.
-- Bridge service objects are private fields. Public bridge members are callable methods, avoiding recursive exposure of native window objects.
-- Startup and runtime logs support crash diagnosis. These controls reduce known failure modes; they are not a guarantee against WebView2, audio-driver or model failures.
+Failure stops subsequent steps. Cancel prevents later steps after an in-flight operation returns; it does not undo completed work. Plans are temporary and are not executable again merely because their chat text was restored.
 
-## 8. Current project versus historical versions
+## Concurrency and external services
 
-The active installation is the top-level `desktop/` under `C:\Users\kanag\Desktop\Artemis`. The tree also contains older desktop copies, experimental orb/voice modules and staged backups. Their presence does not mean the current launcher uses them.
+The native window runs on its GUI thread. The local HTTP server and voice workers use background threads. Locks coordinate shared state and cancellation; status updates are polled by the interface. JSON state uses atomic replacement.
 
-`C:\Users\kanag\Documents\ChatGPT\Artemis` is the development/update workspace. Its `Artemis-*` directories and ZIP files are successive feature packages, not separate services. `Artemis-Daily` is the latest staged everyday-feature package inspected here.
+| Service | When used | Information exchanged |
+| --- | --- | --- |
+| Local Ollama | General conversation and model/service checks | Messages, recent context, relevant saved facts/excerpts |
+| Open-Meteo | Location search and weather requests | City search text, selected coordinates, weather results |
+| Package/model providers | Explicit installation and model preparation | Download requests |
 
-The current centerpiece is the animated Artemis icon. Older WebGL shader files remain available, but icon mode bypasses the old WebGL orb initialization. Several generations of CSS are still loaded in order, with later files overriding earlier styling.
+Calendar support imports local files; it does not connect to a calendar account. Email integration is not implemented. Reminders and scheduled briefings are application services and require Artemis to be open, rather than OS background tasks.
 
-## 9. Sensible next architectural improvements
+## Packaging and development
 
-These are recommendations, not implemented features:
+`scripts/build.py` creates a deterministic source ZIP and SHA-256 manifest. The guided installer verifies the manifest, copies application files into a new folder, creates a private Python environment, and installs direct pinned dependencies. It leaves system prerequisites and model preparation as explicit setup steps.
 
-1. Rename `handle_app_command` to a general command router and give tools a consistent response structure (`handled`, display text, spoken text, choices, source metadata).
-2. Separate natural spoken weather text from the timestamp/source details shown in chat. Currently the same reply string is displayed and spoken.
-3. Consolidate the layered theme files and remove unused scripts only after visual/regression checks and a rollback snapshot.
-4. Establish one canonical source tree with version control and reproducible packaging; clearly archive historical copies.
-5. Centralize the conversation state machine to reduce coordination through shared JavaScript globals across chat, recording and playback.
-
-Existing checks in the development workspace cover command matching, weather errors, arithmetic bounds, hands-free behavior, saved state, Mini behavior and selected native window operations. This document was checked against source; no microphone recording, audio playback or app restart was needed to produce it.
+Model weights, Python environments, private data, logs, and rollback backups are excluded from the source bundle. The repository's earlier layout remains in Git history. Use `app/` for current changes and the [development guide](docs/DEVELOPMENT.md) for checks and packaging.

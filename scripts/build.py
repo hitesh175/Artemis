@@ -11,9 +11,11 @@ def build():
              and not any(x in p.relative_to(ROOT / 'app').parts for x in
                          ('__pycache__', '.venv', 'data', 'logs', 'models', 'voice_test'))
              and p.suffix != '.pyc']
-    files += [ROOT / p for p in ('README.md', 'requirements.txt',
+    files += [ROOT / p for p in ('README.md', 'ARCHITECTURE.md', 'requirements.txt',
                                  'requirements-baseline.lock', 'requirements-runtime.lock', 'SOURCE-BASELINE.json')]
     files += [p for p in (ROOT / 'setup').rglob('*') if p.is_file()
+              and '__pycache__' not in p.parts and p.suffix != '.pyc']
+    files += [p for p in (ROOT / 'docs').rglob('*') if p.is_file()
               and '__pycache__' not in p.parts and p.suffix != '.pyc']
     files += [p for p in (ROOT / 'scripts').glob('*') if p.suffix in ('.py', '.ps1')]
     files += [p for p in (ROOT / 'tests').glob('*') if p.suffix in ('.py', '.cjs')]

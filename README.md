@@ -22,7 +22,7 @@ Artemis brings local language models and practical desktop tools into a single W
 
 The interface includes a full desktop view, a compact Mini mode, and Quiet mode for text-only use. Desktop actions go through defined application tools; an AI-generated reply cannot execute a shell command or silently launch an app.
 
-**Project status:** working prototype. The current app has passed automated regression checks, native Windows UI checks, real local-model chat checks, and silent voice-model loading. Clean-machine setup and live microphone use still need further validation.
+**Project status:** working prototype. The current app has passed regression checks, native Windows UI checks, real local-model chat checks, and silent voice-model loading. Clean-machine setup and live microphone use still need further validation.
 
 ## Features
 

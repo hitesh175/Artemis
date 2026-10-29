@@ -2,7 +2,7 @@
 # Exact versions from the existing environment are in requirements-baseline.lock.
 pywebview>=5,<7
 sounddevice>=0.4.6,<0.6
-numpy>=1.26,<2
+numpy>=2.0.2,<3
 faster-whisper
 kokoro-onnx
 piper-tts

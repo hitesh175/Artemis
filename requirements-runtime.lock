@@ -1,0 +1,12 @@
+# Direct runtime versions verified on Windows x64 / Python 3.11.
+# Transitive packages are resolved by pip; this is not a complete hash lock.
+pywebview==6.2.1
+sounddevice==0.5.6
+numpy==2.4.6
+faster-whisper==1.2.1
+kokoro-onnx==0.6.1
+piper-tts==1.8.0
+pypdf==6.10.0
+icalendar==7.3.0
+recurring-ical-events==3.8.2
+python-dateutil==2.9.0.post0

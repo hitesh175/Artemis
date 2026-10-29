@@ -519,10 +519,32 @@ required install/rollback files, and agreement with the installed application so
 It writes output/release-verification.json. The optional installed-root check reads
 only application files listed in the source manifest, not private data or models.
 
-This is still a source distribution for an existing installation, not a standalone
-installer or evidence of clean-machine portability. Python, external dependencies,
-WebView2, Ollama and cached voice/language models remain prerequisites. A fresh
-machine installation, real microphone use and noisy-room conversation remain
-separate validation tasks.
+The source distribution now includes guided online Windows setup, described below.
+A fresh machine installation, real microphone use and noisy-room conversation
+remain separate validation tasks.
+
+## Guided Windows setup
+
+Extract `output/releases/artemis-source.zip` on Windows x64 with Python 3.11 x64,
+then run `scripts/install-windows.ps1` from the extracted folder. See
+[setup/FIRST_RUN.md](setup/FIRST_RUN.md) for prerequisites and model setup.
+The installer creates a private Python environment in a new folder, verifies
+release file hashes, installs application packages and creates shortcuts. It
+refuses to overwrite an existing app. Interrupted installations can resume with
+the same release and `-Resume`. `-CheckOnly` verifies the release and reports
+runtime/model readiness without installing anything.
+
+`requirements-runtime.lock` pins direct runtime packages to tested versions;
+transitive dependencies are resolved by pip. NumPy now allows version 2, as
+required by the speech engine. Package downloads need internet access. WebView2,
+Ollama and model files have separate setup instructions. Models and private user
+data are excluded from the ZIP. Setup never starts recording or speech, downloads
+models, enables autostart, or enables scheduled briefings. Fresh settings start
+with Quiet on and hands-free off.
+
+Validation includes installer refusal/recovery checks, the full regression suite,
+and an isolated fresh environment on this computer. This guided setup is not an
+offline executable installer or proof of portability to a clean second computer.
+The existing installed Artemis app is unchanged by this installer work.
 
 

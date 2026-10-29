@@ -5,6 +5,9 @@
 !SOURCE-BASELINE.json
 !requirements.txt
 !requirements-baseline.lock
+!requirements-runtime.lock
+!setup/
+!setup/**
 !app/
 !app/**
 !scripts/

@@ -11,6 +11,9 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--root',type=Path,required=True)
 parser.add_argument('--visible',action='store_true',help='Show the test window to verify real animation frames')
 parser.add_argument('--review-settings',action='store_true',help='Keep an isolated Settings preview open for visual review')
+parser.add_argument('--review-width',type=int,default=1100,help='Window width for the isolated Settings preview')
+parser.add_argument('--review-section',choices=('appearance','briefings','models','chat'),default='appearance',
+                    help='Section or sample conversation to show in the isolated preview')
 args=parser.parse_args()
 root=args.root.resolve(strict=True)
 work=Path(__file__).resolve().parents[1]/'output'
@@ -34,7 +37,8 @@ bridge._mini_file=temp/'mini.json'
 http=server.make_server(memory=bridge._memory,documents=bridge._documents,model_settings=bridge._models)
 threading.Thread(target=http.serve_forever,daemon=True).start()
 window=webview.create_window('Artemis fresh setup check',url=f'http://127.0.0.1:{http.server_port}',
-                            js_api=bridge,hidden=not (args.visible or args.review_settings),width=1100,height=800,
+                            js_api=bridge,hidden=not (args.visible or args.review_settings),
+                            width=max(500,min(args.review_width,1600)) if args.review_settings else 1100,height=800,
                             frameless=True,easy_drag=False)
 bridge._window=window
 outcome={'passed':False,'root':str(root),'microphone_used':False,'audio_played':False}
@@ -47,7 +51,13 @@ def verify():
             time.sleep(.1)
         assert window.evaluate_js('window.ArtemisSession.ready')
         if args.review_settings:
-            window.evaluate_js("openPanel('settings')")
+            if args.review_section=='chat':
+                window.evaluate_js("openPanel('chat'); void (async()=>{await sendArtemisMessage('remember that I prefer tea');await sendArtemisMessage('What tea do I prefer? Please answer briefly.');})();")
+            else:
+                heading={'appearance':'setting-quiet-mode','briefings':'setting-scheduled-daily-briefing',
+                         'models':'setting-local-intelligence'}[args.review_section]
+                window.evaluate_js("openPanel('settings'); document.getElementById("+json.dumps(heading)+
+                                   ").closest('section').scrollIntoView({block:'start',behavior:'instant'});")
             outcome['passed']=True
             return
         window.evaluate_js("openPanel('settings')")

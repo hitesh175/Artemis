@@ -51,6 +51,12 @@ Native installed-app checks are separate:
 
 Some installed-app maintenance scripts retain the original developer's installation path. Review or adapt it before running them on another computer. The general Windows installer and `verify-fresh-install.py --root` accept an explicit destination.
 
+For documentation screenshots, `verify-fresh-install.py --root app --review-settings --review-width 520`
+keeps an isolated preview open until closed. Choose `--review-section appearance`,
+`briefings`, `models`, or `chat`. The chat preview saves an example fact in temporary
+memory and sends a sample question to the local Ollama model. It never records or
+plays audio, and its temporary state is removed after the preview closes.
+
 ## Build and inspect the source distribution
 
 ```powershell

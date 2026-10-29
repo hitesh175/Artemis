@@ -10,7 +10,7 @@ Chat with a local model, find information in your documents, and manage reminder
 
 **Windows x64 · Python · WebView2 · Ollama**
 
-[Features](#features) · [Get started](#get-started) · [Usage guide](docs/USAGE.md) · [Architecture](ARCHITECTURE.md)
+[Features](#features) · [Interface](#interface) · [Get started](#get-started) · [Usage guide](docs/USAGE.md) · [Architecture](ARCHITECTURE.md)
 
 </div>
 
@@ -56,14 +56,34 @@ Memory changes are explicit. Document search reads only files you select. Task p
 
 See the [usage guide](docs/USAGE.md) for controls, command examples, and feature boundaries.
 
-<details>
-<summary><strong>See the Settings interface</strong></summary>
+## Interface
 
-![Artemis Settings with grouped controls and appearance preferences](docs/images/artemis-settings.jpg)
+### Chat
 
-Screenshots show the actual application in an isolated preview with temporary settings. No personal conversations or documents are shown.
+The conversation panel keeps messages, replies, and the composer together. This example shows an explicitly saved preference and a real response from the local model using that temporary memory.
 
-</details>
+<img src="docs/images/artemis-chat.jpg" alt="Artemis chat showing a saved tea preference and a local-model response" width="520">
+
+### Settings
+
+Settings is a scrollable menu of grouped controls. These separate views show more of the interface at a readable size, without needing to expand a hidden section.
+
+**Quiet mode and appearance** — microphone/speech controls, animation speed, scale, and reduced motion.
+
+<img src="docs/images/artemis-settings.jpg" alt="Settings: Quiet mode, animation speed, scale, and reduced motion" width="520">
+
+**Briefings and daily tools** — an optional briefing schedule, reviewed task-plan help, and the on-demand daily briefing.
+
+<img src="docs/images/artemis-settings-workflows.jpg" alt="Settings: scheduled briefings, task-plan help, and daily briefing controls" width="520">
+
+**Models and services** — local service checks, the Ollama model selector, and voice-engine information.
+
+<img src="docs/images/artemis-settings-models.jpg" alt="Settings: service checks, Ollama model selection, and voice-engine information" width="520">
+
+The same menu also contains weather location, app discovery, hands-free controls, calendar import, reminders, document indexing, memory help, voice preparation, and performance timings. The [usage guide](docs/USAGE.md) explains these controls.
+
+All screenshots show the actual application in an isolated preview with temporary settings and example messages. No personal conversations or documents are shown. Narrow preview windows make the chat and Settings controls easier to read here.
+
 
 ## How it works
 

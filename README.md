@@ -14,7 +14,7 @@ Chat with a local model, find information in your documents, and manage reminder
 
 </div>
 
-![Artemis desktop workspace](docs/images/artemis-desktop.jpg)
+<a href="docs/images/artemis-desktop.png"><img src="docs/images/artemis-desktop.png" alt="Artemis desktop workspace" width="1100"></a>
 
 ## Overview
 
@@ -60,9 +60,9 @@ See the [usage guide](docs/USAGE.md) for controls, command examples, and feature
 
 ### Chat
 
-The conversation panel keeps messages, replies, and the composer together. This example shows an explicitly saved preference and a real response from the local model using that temporary memory.
+The conversation panel keeps messages, replies, and the composer together. This real example shows a short study tip from the local model, followed by a calculation handled by the arithmetic tool. Click the screenshot to open it at full resolution.
 
-<img src="docs/images/artemis-chat.jpg" alt="Artemis chat showing a saved tea preference and a local-model response" width="520">
+<a href="docs/images/artemis-chat.png"><img src="docs/images/artemis-chat.png" alt="Artemis chat with a real local-model study tip and the correct arithmetic result, 25 times 4 equals 100" width="520"></a>
 
 ### Settings
 

@@ -53,8 +53,8 @@ Some installed-app maintenance scripts retain the original developer's installat
 
 For documentation screenshots, `verify-fresh-install.py --root app --review-settings --review-width 520`
 keeps an isolated preview open until closed. Choose `--review-section appearance`,
-`briefings`, `models`, or `chat`. The chat preview saves an example fact in temporary
-memory and sends a sample question to the local Ollama model. It never records or
+`briefings`, `models`, or `chat`. The chat preview sends a study-tip question to the local Ollama model and runs
+a calculation through the arithmetic tool in a temporary session. It never records or
 plays audio, and its temporary state is removed after the preview closes.
 
 For lossless Settings images, run `verify-fresh-install.py --root app --export-settings docs/images`.
@@ -96,3 +96,8 @@ The bundle is a source distribution with guided online setup, rather than a stan
 - Keep dependency/model attribution and validation claims accurate.
 
 The [development history](DEVELOPMENT_HISTORY.md) preserves earlier implementation details. Its superseded paths and statements are historical context, not current setup instructions.
+
+For matching home/chat PNG exports, use `verify-fresh-install.py --root app --export-overview docs/images`.
+This renders the home view at 1100 CSS pixels and chat at 520 CSS pixels, both at
+double density. The conversation uses actual application responses; no reply text
+is substituted for the screenshot.

@@ -57,6 +57,12 @@ keeps an isolated preview open until closed. Choose `--review-section appearance
 memory and sends a sample question to the local Ollama model. It never records or
 plays audio, and its temporary state is removed after the preview closes.
 
+For lossless Settings images, run `verify-fresh-install.py --root app --export-settings docs/images`.
+This uses WebView2's PNG capture API with a double-density render surface and
+temporary state. It exports three sections, checks PNG dimensions and distinct
+contents, then closes the preview. It does not upscale existing images. Capture
+transitions are disabled only in the temporary preview; the installed UI is unchanged.
+
 ## Build and inspect the source distribution
 
 ```powershell

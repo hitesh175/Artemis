@@ -66,19 +66,19 @@ The conversation panel keeps messages, replies, and the composer together. This 
 
 ### Settings
 
-Settings is a scrollable menu of grouped controls. These separate views show more of the interface at a readable size, without needing to expand a hidden section.
+Settings is a scrollable menu of grouped controls. These lossless PNG captures are rendered at twice their displayed width to keep text clear. Click any Settings image to open the full-resolution version.
 
 **Quiet mode and appearance** — microphone/speech controls, animation speed, scale, and reduced motion.
 
-<img src="docs/images/artemis-settings.jpg" alt="Settings: Quiet mode, animation speed, scale, and reduced motion" width="520">
+<a href="docs/images/artemis-settings.png"><img src="docs/images/artemis-settings.png" alt="Settings: Quiet mode, animation speed, scale, and reduced motion" width="520"></a>
 
 **Briefings and daily tools** — an optional briefing schedule, reviewed task-plan help, and the on-demand daily briefing.
 
-<img src="docs/images/artemis-settings-workflows.jpg" alt="Settings: scheduled briefings, task-plan help, and daily briefing controls" width="520">
+<a href="docs/images/artemis-settings-workflows.png"><img src="docs/images/artemis-settings-workflows.png" alt="Settings: scheduled briefings, task-plan help, and daily briefing controls" width="520"></a>
 
 **Models and services** — local service checks, the Ollama model selector, and voice-engine information.
 
-<img src="docs/images/artemis-settings-models.jpg" alt="Settings: service checks, Ollama model selection, and voice-engine information" width="520">
+<a href="docs/images/artemis-settings-models.png"><img src="docs/images/artemis-settings-models.png" alt="Settings: service checks, Ollama model selection, and voice-engine information" width="520"></a>
 
 The same menu also contains weather location, app discovery, hands-free controls, calendar import, reminders, document indexing, memory help, voice preparation, and performance timings. The [usage guide](docs/USAGE.md) explains these controls.
 

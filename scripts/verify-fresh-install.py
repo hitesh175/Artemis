@@ -1,5 +1,6 @@
 """Silent native UI smoke check of an isolated guided installation, without models."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -14,6 +15,7 @@ parser.add_argument('--review-settings',action='store_true',help='Keep an isolat
 parser.add_argument('--review-width',type=int,default=1100,help='Window width for the isolated Settings preview')
 parser.add_argument('--review-section',choices=('appearance','briefings','models','chat'),default='appearance',
                     help='Section or sample conversation to show in the isolated preview')
+parser.add_argument('--export-settings',type=Path,help='Export lossless, double-density Settings screenshots from WebView2')
 args=parser.parse_args()
 root=args.root.resolve(strict=True)
 work=Path(__file__).resolve().parents[1]/'output'
@@ -37,11 +39,62 @@ bridge._mini_file=temp/'mini.json'
 http=server.make_server(memory=bridge._memory,documents=bridge._documents,model_settings=bridge._models)
 threading.Thread(target=http.serve_forever,daemon=True).start()
 window=webview.create_window('Artemis fresh setup check',url=f'http://127.0.0.1:{http.server_port}',
-                            js_api=bridge,hidden=not (args.visible or args.review_settings),
+                            js_api=bridge,hidden=not (args.visible or args.review_settings or args.export_settings),
                             width=max(500,min(args.review_width,1600)) if args.review_settings else 1100,height=800,
                             frameless=True,easy_drag=False)
 bridge._window=window
 outcome={'passed':False,'root':str(root),'microphone_used':False,'audio_played':False}
+
+def export_settings(destination):
+    """Render fresh PNGs at twice their intended display width; never upscale images."""
+    from System import Action
+    from System.Drawing import Size
+    from System.Windows.Forms import DockStyle
+    from System.IO import FileStream,FileMode,FileAccess
+    from Microsoft.Web.WebView2.Core import CoreWebView2CapturePreviewImageFormat
+    destination=destination.resolve()
+    destination.mkdir(parents=True,exist_ok=True)
+    native=window.native
+    control=native.webview
+    original_density=window.evaluate_js('devicePixelRatio')
+    def configure():
+        native.ClientSize=Size(1040,1600)
+        control.Dock=getattr(DockStyle,'None')
+        control.Size=Size(1040,1600)
+        control.ZoomFactor=control.ZoomFactor*2.0/original_density
+    control.Invoke(Action(configure))
+    for _ in range(60):
+        metrics=window.evaluate_js('({width:innerWidth,height:innerHeight,density:devicePixelRatio})')
+        if 480<=metrics['width']<=540 and metrics['height']>=740:break
+        time.sleep(.1)
+    assert 480<=metrics['width']<=540 and metrics['height']>=740,metrics
+    layout=window.evaluate_js("(()=>{openPanel('settings');const panel=document.getElementById('settings-panel');panel.style.cssText+=';transition:none!important;transform:none!important';return {classes:panel.className,style:panel.style.cssText,transform:getComputedStyle(panel).transform,x:panel.getBoundingClientRect().x}})()")
+    assert layout['x']<100,layout
+    captures=[]
+    digests=set()
+    for name,heading in (('artemis-settings','setting-quiet-mode'),
+                         ('artemis-settings-workflows','setting-scheduled-daily-briefing'),
+                         ('artemis-settings-models','setting-service-status')):
+        window.evaluate_js('document.getElementById('+json.dumps(heading)+
+                           ").closest('section').scrollIntoView({block:'start',behavior:'instant'});")
+        time.sleep(.35)
+        path=destination/(name+'.png')
+        stream=FileStream(str(path),FileMode.Create,FileAccess.Write)
+        tasks=[]
+        try:
+            control.Invoke(Action(lambda:tasks.append(control.CoreWebView2.CapturePreviewAsync(
+                CoreWebView2CapturePreviewImageFormat.Png,stream))))
+            if not tasks[0].Wait(15000):raise TimeoutError('WebView2 screenshot timed out')
+        finally:stream.Dispose()
+        data=path.read_bytes()
+        assert data[:8]==b'\x89PNG\r\n\x1a\n','Capture is not a PNG'
+        width=int.from_bytes(data[16:20],'big');height=int.from_bytes(data[20:24],'big')
+        assert width>=1040 and height>=1500,(width,height)
+        digest=hashlib.sha256(data).hexdigest()
+        assert digest not in digests,'Settings sections produced identical images'
+        digests.add(digest)
+        captures.append({'file':str(path),'width':width,'height':height})
+    return {'viewport':metrics,'captures':captures}
 
 def verify():
     try:
@@ -50,6 +103,9 @@ def verify():
             if window.evaluate_js('Boolean(window.ArtemisSession?.ready)'):break
             time.sleep(.1)
         assert window.evaluate_js('window.ArtemisSession.ready')
+        if args.export_settings:
+            outcome.update(settings_export=export_settings(args.export_settings),passed=True)
+            return
         if args.review_settings:
             if args.review_section=='chat':
                 window.evaluate_js("openPanel('chat'); void (async()=>{await sendArtemisMessage('remember that I prefer tea');await sendArtemisMessage('What tea do I prefer? Please answer briefly.');})();")
@@ -89,7 +145,7 @@ def verify():
         import traceback
         outcome['error']=traceback.format_exc()
     finally:
-        if not args.review_settings:window.destroy()
+        if args.export_settings or not args.review_settings:window.destroy()
 
 try:webview.start(verify,gui='edgechromium',debug=False,private_mode=True)
 finally:

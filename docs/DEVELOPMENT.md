@@ -49,6 +49,23 @@ folder as a test. A clean Windows computer is still required for end-to-end vali
 
 ## Verification
 
+The active visual system is documented in [`DESIGN.md`](../DESIGN.md). The main
+page uses `theme.css` and component styles; historical theme experiments are not
+loaded. Focus/categories live in `ui-panels.js`; completed-reply announcements in
+`chat-accessibility.js` do not announce streaming tokens or restored history.
+
+For native interface checks, open an isolated preview with a local inspection port:
+
+```powershell
+$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS='--remote-debugging-port=9222 --remote-debugging-address=127.0.0.1'
+.\.venv\Scripts\python.exe scripts/verify-fresh-install.py --root app --review-settings
+```
+
+In another terminal run `node scripts/verify-interface.mjs`. This verifies focus,
+all 17 groups, small-window reflow, announcements, placeholder styling, and the
+native Mini/Chat/Full round trip. Close the preview and remove the environment
+variable afterward. Do not enable the inspection port for routine use.
+
 `scripts/check.py` parses Python source, runs regression tests, and checks JavaScript. It uses mocks/synthetic audio; it does not start microphone capture or audible playback.
 
 Native installed-app checks are separate:

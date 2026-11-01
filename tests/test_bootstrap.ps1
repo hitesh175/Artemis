@@ -30,6 +30,7 @@ catch { Assert ($_.Exception.Message -match 'already exists') 'Existing source f
 Write-Output 'PASS: bootstrap syntax, bounded retries, HTTPS, executable trust, existing-folder protection'
 
 # Exercise the real orchestrator with fake external boundaries. No tools installed.
+Import-Module (Join-Path $PSHOME 'Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1') -Force
 $fixture=Join-Path ([IO.Path]::GetTempPath()) ('ArtemisBootstrapTest-'+[Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $fixture | Out-Null
 $previousLocal=$env:LOCALAPPDATA

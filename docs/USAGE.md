@@ -17,6 +17,16 @@
 
 Prepare cached voice models in Settings before a conversation if desired. Actual recording/playback requires suitable models and working devices. The setup guide explains the separate model downloads.
 
+## Find settings
+
+Use the **Section** chooser: **General** (Quiet mode, appearance), **Voice**
+(hands-free, voice sending, preparation), **Daily** (calendar and briefings), **Tools**
+(weather, apps, task plans, reminders), **Knowledge** (documents, memory), and
+**System** (timings, services, models). Each section keeps its own controls and help.
+
+Tab stays inside a full-view panel; Escape closes it and returns focus to its opener.
+Compact Chat keeps Full/Collapse available.
+
 ## Memory
 
 Facts are saved only through explicit commands. Ordinary chat does not automatically create memories.

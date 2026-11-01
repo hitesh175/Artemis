@@ -5,6 +5,9 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+for name in ('ui-panels.js', 'chat-accessibility.js'):
+    subprocess.run(['node', '--check', str(ROOT / 'app/desktop/web' / name)], check=True)
+subprocess.run(['node', '--check', str(ROOT / 'scripts/verify-interface.mjs')], check=True)
 for folder in ('app', 'scripts', 'setup'):
     for path in (ROOT / folder).rglob('*.py'):
         ast.parse(path.read_text(encoding='utf-8-sig'), filename=str(path))

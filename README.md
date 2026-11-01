@@ -68,15 +68,15 @@ The conversation panel keeps messages, replies, and the composer together. This 
 
 ### Settings
 
-Settings is a scrollable menu of grouped controls. These lossless PNG captures are rendered at twice their displayed width to keep text clear. Click any Settings image to open the full-resolution version.
+Settings uses a Section chooser for General, Voice, Daily, Tools, Knowledge, and System. Each category keeps related controls together in a scrollable panel. These lossless PNG captures are rendered at twice their displayed width to keep text clear. Click any Settings image to open the full-resolution version.
 
 **Quiet mode and appearance** — microphone/speech controls, animation speed, scale, and reduced motion.
 
 <a href="docs/images/artemis-settings.png"><img src="docs/images/artemis-settings.png" alt="Settings: Quiet mode, animation speed, scale, and reduced motion" width="520"></a>
 
-**Briefings and daily tools** — an optional briefing schedule, reviewed task-plan help, and the on-demand daily briefing.
+**Calendar and briefings** — calendar snapshots, an optional briefing schedule, and the on-demand daily briefing. Task plans remain available under Tools.
 
-<a href="docs/images/artemis-settings-workflows.png"><img src="docs/images/artemis-settings-workflows.png" alt="Settings: scheduled briefings, task-plan help, and daily briefing controls" width="520"></a>
+<a href="docs/images/artemis-settings-workflows.png"><img src="docs/images/artemis-settings-workflows.png" alt="Settings Daily section: briefing schedule and on-demand daily briefing" width="520"></a>
 
 **Models and services** — local service checks, the Ollama model selector, and voice-engine information.
 

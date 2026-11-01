@@ -11,8 +11,9 @@ $('orb').addEventListener('webglcontextlost',e=>{e.preventDefault();gl=null;show
 function initGlass(){if(document.querySelector(".icon-stage"))return;try{const canvas=$('orb');gl=canvas.getContext('webgl2',{alpha:true,antialias:true,premultipliedAlpha:false,powerPreference:'high-performance'});if(!gl)throw Error('WebGL2 is not available');program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexSource));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);const verts=new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]);const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,verts,gl.STATIC_DRAW);const a=gl.getAttribLocation(program,'a');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);uniforms={};for(const n of ['res','t','crystal','water','motion','state'])uniforms[n]=gl.getUniformLocation(program,n);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);requestAnimationFrame(render)}catch(err){showFallback('Browser graphics fallback');console.error(err)}}
 function showFallback(reason){const canvas=$('orb');canvas.style.display='none';const el=$('orb-fallback');el.hidden=false;el.setAttribute('aria-label',reason);const check=new Image();check.onload=()=>{el.style.backgroundImage='url(\"/assets/orb_native_fallback.png\")'};check.onerror=()=>{el.style.backgroundImage='none';el.style.color='#eaf3ff';el.style.fontSize='14px';el.textContent='Artemis visual asset could not load. Please reinstall the desktop/assets folder.';console.error('Missing local orb fallback artwork')};check.src='/assets/orb_native_fallback.png';}
 function render(now){if(!gl||document.hidden){frameLast=now;requestAnimationFrame(render);return;}if(now-lastDraw<1000/30){requestAnimationFrame(render);return;}lastDraw=now;let dt=Math.min((now-frameLast)/1000,.05);frameLast=now;time+=dt*speed;const canvas=$('orb');let ratio=Math.min(devicePixelRatio||1,1,900/Math.max(1,canvas.clientWidth),600/Math.max(1,canvas.clientHeight)),w=Math.max(1,Math.round(canvas.clientWidth*ratio)),h=Math.max(1,Math.round(canvas.clientHeight*ratio));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}gl.viewport(0,0,w,h);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform2f(uniforms.res,w,h);gl.uniform1f(uniforms.t,time);gl.uniform1f(uniforms.crystal,.5);gl.uniform1f(uniforms.water,.5);gl.uniform1f(uniforms.motion,speed);gl.uniform1f(uniforms.state,shaderState);gl.drawArrays(gl.TRIANGLES,0,6);requestAnimationFrame(render)}
-const panels={chat:$('chat-panel'),settings:$('settings-panel')};function openPanel(name){Object.entries(panels).forEach(([n,el])=>{let active=n===name;el.classList.toggle('open',active);el.setAttribute('aria-hidden',String(!active));el.inert=!active});document.body.classList.add('panel-open');$('veil').hidden=false;if(name==='chat')$('chat-input').focus({preventScroll:true})}
-function closePanels(){Object.values(panels).forEach(el=>{if(el.contains(document.activeElement))document.activeElement.blur();el.classList.remove('open');el.setAttribute('aria-hidden','true');el.inert=true});document.body.classList.remove('panel-open');$('veil').hidden=true}
+const panels={chat:$('chat-panel'),settings:$('settings-panel')};
+function openPanel(name){window.ArtemisPanels.open(name)}
+function closePanels(){window.ArtemisPanels.close()}
 $('chat-open').addEventListener('click',()=>openPanel('chat'));
 let fullscreenBusy=false;
 async function setArtemisFullscreen(value){
@@ -198,11 +199,11 @@ $('check-services').addEventListener('click',async()=>{
   }catch(err){$('service-status').textContent='Could not check services: '+err.message;}
   finally{button.disabled=false;}
 });
-function bubble(role,content){let el=document.createElement('div');el.className='bubble '+role;el.textContent=content;let welcome=$('messages').querySelector('.welcome');if(welcome)welcome.remove();$('messages').appendChild(el);scrollArtemisChatToEnd();return el}
+function bubble(role,content){let el=document.createElement('div');el.className='bubble '+role;el.textContent=content;let welcome=$('messages').querySelector('.welcome');if(welcome)welcome.remove();$('messages').appendChild(el);scrollArtemisChatToEnd();if(role==='assistant'&&!busy&&window.ArtemisSession?.ready)window.ArtemisChatAccessibility?.finish(content);return el}
 async function sendArtemisMessage(msg, fromVoice=false){
   msg=String(msg||'').trim();
   if(!msg||busy)return;
-  busy=true;$('send').disabled=true;
+  busy=true;$('send').disabled=true;window.ArtemisChatAccessibility?.start();
   const prev=history.slice();
   bubble('user',msg);
   const pending=bubble('assistant','Thinking…');
@@ -328,7 +329,7 @@ async function sendArtemisMessage(msg, fromVoice=false){
     setState('error');
     if(fromVoice)$('subhead').textContent='Could not connect: '+err.message;
   }finally{
-    busy=false;$('send').disabled=false;
+    busy=false;$('send').disabled=false;window.ArtemisChatAccessibility?.finish(pending.textContent);
     // Streaming preserves the reader's scroll position. New messages scroll once.
   }
 }

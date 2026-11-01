@@ -97,7 +97,7 @@ def export_settings(destination):
     for name,heading in (('artemis-settings','setting-quiet-mode'),
                          ('artemis-settings-workflows','setting-scheduled-daily-briefing'),
                          ('artemis-settings-models','setting-service-status')):
-        window.evaluate_js('document.getElementById('+json.dumps(heading)+
+        window.evaluate_js('showArtemisSettingsSection('+json.dumps(heading)+');document.getElementById('+json.dumps(heading)+
                            ").closest('section').scrollIntoView({block:'start',behavior:'instant'});")
         path=destination/(name+'.png')
         capture=capture_png(path)
@@ -145,7 +145,7 @@ def verify():
             else:
                 heading={'appearance':'setting-quiet-mode','briefings':'setting-scheduled-daily-briefing',
                          'models':'setting-local-intelligence'}[args.review_section]
-                window.evaluate_js("openPanel('settings'); document.getElementById("+json.dumps(heading)+
+                window.evaluate_js("openPanel('settings'); showArtemisSettingsSection("+json.dumps(heading)+"); document.getElementById("+json.dumps(heading)+
                                    ").closest('section').scrollIntoView({block:'start',behavior:'instant'});")
             outcome['passed']=True
             return

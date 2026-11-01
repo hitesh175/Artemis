@@ -10,7 +10,7 @@ Chat with a local model, find information in your documents, and manage reminder
 
 **Windows x64 · Python · WebView2 · Ollama**
 
-[Features](#features) · [Interface](#interface) · [Get started](#get-started) · [Usage guide](docs/USAGE.md) · [Architecture](ARCHITECTURE.md)
+[Features](#features) · [Interface](#interface) · [Get started](#get-started) · [Usage guide](docs/USAGE.md) · [Architecture](ARCHITECTURE.md) · [Development](docs/DEVELOPMENT.md)
 
 </div>
 
@@ -18,11 +18,13 @@ Chat with a local model, find information in your documents, and manage reminder
 
 ## Overview
 
+**Start here:** use the [first-run guide](setup/FIRST_RUN.md) for installation, the [usage guide](docs/USAGE.md) for everyday commands, or the [development guide](docs/DEVELOPMENT.md) for source checks and packaging.
+
 Artemis brings local language models and practical desktop tools into a single Windows application. It supports text chat, local speech recognition and spoken replies, alongside explicit tools for documents, personal memory, reminders, calendars, weather, and app launching.
 
 The interface includes a full desktop view, a compact Mini mode, and Quiet mode for text-only use. Desktop actions go through defined application tools; an AI-generated reply cannot execute a shell command or silently launch an app.
 
-**Project status:** working prototype. The current app has passed automated regression checks, native Windows UI checks, real local-model chat checks, and silent voice-model loading. Clean-machine setup and live microphone use still need further validation.
+**Project status:** working prototype. The current app has passed regression checks, native Windows UI checks, real local-model chat checks, and silent voice-model loading. Clean-machine setup and live microphone use still need further validation.
 
 ## Features
 

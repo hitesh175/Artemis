@@ -5,7 +5,8 @@ param(
     [switch]$Resume,
     [switch]$Yes,
     [switch]$NoShortcuts,
-    [switch]$DesktopShortcut
+    [switch]$DesktopShortcut,
+    [switch]$ShortcutsOnly
 )
 $ErrorActionPreference='Stop'
 $releaseRoot=Split-Path $PSScriptRoot -Parent
@@ -40,13 +41,20 @@ if ($CheckOnly) {
     if ($LASTEXITCODE -ne 0) { throw 'Prerequisite or release checks failed.' }
     exit 0
 }
-if (-not $Yes) {
+if ($ShortcutsOnly) {
+    $marker=Join-Path $targetRoot 'artemis-setup.json'
+    if (-not (Test-Path -LiteralPath $marker) -or (Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json).state -ne 'complete') {
+        throw 'Complete package setup before creating shortcuts.'
+    }
+} elseif (-not $Yes) {
     $answer=Read-Host 'Install into this new folder? Type Install to continue'
     if ($answer -ne 'Install') { Write-Host 'Setup cancelled.';exit 0 }
 }
-if ($Resume) { $arguments+='--resume' }
-& $selectedExe @arguments
-if ($LASTEXITCODE -ne 0) { throw 'Setup did not complete. See artemis-setup.json in the destination and FIRST_RUN.md in the release setup folder.' }
+if (-not $ShortcutsOnly) {
+    if ($Resume) { $arguments+='--resume' }
+    & $selectedExe @arguments
+    if ($LASTEXITCODE -ne 0) { throw 'Setup did not complete. See artemis-setup.json in the destination and FIRST_RUN.md in the release setup folder.' }
+}
 if (-not $NoShortcuts) {
     $shell=New-Object -ComObject WScript.Shell
     $links=@((Join-Path $targetRoot 'Artemis.lnk'))

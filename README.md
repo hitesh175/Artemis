@@ -116,13 +116,27 @@ Read the [architecture guide](ARCHITECTURE.md) for request flows, storage, and e
 
 ### Requirements
 
-- Windows x64 and Python 3.11 x64.
-- Microsoft Edge WebView2 Runtime for the desktop interface.
-- Ollama and a locally installed chat model for conversation.
-- Cached Whisper and Kokoro models for voice features.
-- Internet access for initial package/model downloads and live weather.
+- Windows 10 22H2 or newer, x64, with 64-bit PowerShell.
+- Internet access for initial setup and live weather; allow several GB of downloads.
+- At least 12 GB of free system-drive space is recommended for the initial setup and models.
 
-### Guided setup
+### One-command setup
+
+Open PowerShell and run:
+
+```powershell
+irm https://raw.githubusercontent.com/hitesh175/Artemis/main/install.ps1 | iex
+```
+
+After one download confirmation, setup prepares Python 3.11, WebView2, Ollama, the Artemis chat model, Whisper recognition, and Kokoro speech. It installs Artemis under `%LOCALAPPDATA%\Artemis`, creates Start menu and desktop shortcuts, then opens the app in Quiet mode. Existing compatible requirements and completed model downloads are reused. Completion time depends on the connection and hardware; a three-minute installation has not been established.
+
+**Validation:** automated setup and recovery checks pass. The complete online flow still needs testing on a clean second Windows computer.
+
+Rerun the same command after an interruption. Setup remembers the source revision for that destination, retries incomplete package/model preparation, and keeps user data. It refuses to overwrite unrelated installations and is not an updater. The existing developer installation is separate.
+
+The command downloads and runs this repository's [readable setup script](install.ps1). For a different location, text-only model preparation, preview checks, or setup without opening the app, see the [setup guide](setup/FIRST_RUN.md#complete-online-setup).
+
+### Manual source setup
 
 1. Clone or download this repository.
 2. From its root, build the source distribution:
@@ -141,7 +155,7 @@ Read the [architecture guide](ARCHITECTURE.md) for request flows, storage, and e
 
 Setup creates a separate Python environment and refuses to overwrite an existing installation. New settings start with Quiet mode on, hands-free off, and scheduled briefings off. Model downloads are explicit.
 
-This is a guided online setup. Python and model weights are not bundled in a standalone executable installer.
+Both paths use online setup. Python and model weights are downloaded separately rather than bundled in a standalone executable installer.
 
 ## Data & connectivity
 

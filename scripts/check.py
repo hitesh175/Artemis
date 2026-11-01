@@ -9,6 +9,9 @@ for folder in ('app', 'scripts', 'setup'):
     for path in (ROOT / folder).rglob('*.py'):
         ast.parse(path.read_text(encoding='utf-8-sig'), filename=str(path))
 subprocess.run([sys.executable, str(ROOT / 'tests/test_windows_setup.py')], cwd=ROOT, check=True)
+subprocess.run([sys.executable, str(ROOT / 'tests/test_model_setup.py')], cwd=ROOT, check=True)
+if sys.platform == 'win32':
+    subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(ROOT / 'tests/test_bootstrap.ps1')], cwd=ROOT, check=True)
 subprocess.run([sys.executable, str(ROOT / 'tests/test_speech_cancel.py')], cwd=ROOT, check=True)
 subprocess.run([sys.executable, str(ROOT / 'tests/test_performance.py')], cwd=ROOT, check=True)
 subprocess.run([sys.executable, str(ROOT / 'tests/test_briefing_schedule.py')], cwd=ROOT, check=True)

@@ -1,6 +1,64 @@
 # Set up Artemis on Windows
 
-## Install the application
+## Complete online setup
+
+On Windows 10 22H2 or newer, x64, open 64-bit PowerShell and run:
+
+```powershell
+irm https://raw.githubusercontent.com/hitesh175/Artemis/main/install.ps1 | iex
+```
+
+Read the download summary and press Enter to continue. The script installs missing
+requirements, the application, its chat model, and Whisper/Kokoro voice models.
+It creates desktop and Start menu shortcuts and launches Artemis. Quiet mode starts
+on; installation never records or plays audio, enables hands-free, or schedules briefings.
+Ollama's official installer may run its normal background app and update behavior.
+
+Expect several GB of downloads; 12 GB free on the system drive is recommended.
+The current chat definition uses the existing Qwen 4B model. Setup does not substitute
+a smaller model to claim a faster installation. Speed depends on the connection and
+hardware. Automated recovery checks pass; clean-machine end-to-end testing is pending.
+
+Default location: `%LOCALAPPDATA%\Artemis`. Existing unrelated folders are refused.
+An existing shared `artemis` Ollama model is reused without overwriting it. Existing
+Kokoro files are reused only when their SHA256 matches the tested upstream files.
+Whisper uses its normal per-user model cache. Model weights stay outside GitHub.
+
+To select options, save the script and run it in a child PowerShell process:
+
+```powershell
+irm https://raw.githubusercontent.com/hitesh175/Artemis/main/install.ps1 -OutFile "$env:TEMP\artemis-install.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\artemis-install.ps1" -Target "$env:LOCALAPPDATA\Artemis" -NoLaunch
+```
+
+Options: `-TextOnly` skips voice-model downloads (voice can be prepared later),
+`-NoLaunch` leaves the app closed, `-Yes` accepts the download summary, and
+`-CheckOnly` prints a basic requirements summary without downloads or writes.
+`-Revision` pins a full 40-character repository commit on a new destination.
+The execution-policy option applies only to that child process.
+
+### Recovery and storage
+
+Rerun the same command with the same destination after a failure. A small receipt
+under `%LOCALAPPDATA%\ArtemisSetup` keeps the selected source revision so recovery
+does not mix releases. Application and model status files in the destination record
+which stage failed. Completed downloads are reused; a failed individual Kokoro file
+is retried from the beginning. Whisper and Ollama handle their own model caches.
+Temporary source archives and requirement installers are removed when setup exits.
+The Python runtime and shared model caches remain available for the installed app.
+
+Setup uses an existing Python 3.11 x64 when available; otherwise a checksum-verified
+Astral uv download installs a managed Python 3.11 runtime. WebView2 and Ollama
+executables must have valid Windows-trusted signatures before being run. These
+checks protect downloads; they do not replace trusting the repository script itself.
+
+This installer creates or finishes an installation; it does not update an existing
+release. Choose a new destination for another revision. It keeps existing shortcuts
+with the same names; the installation folder's `Artemis.lnk` always identifies that copy.
+For installation behind a proxy, unavailable GitHub access, or a download failure,
+the manual path below remains available.
+
+## Install the application manually
 
 Use Windows x64 with Python 3.11 x64 installed from
 https://www.python.org/downloads/windows/.

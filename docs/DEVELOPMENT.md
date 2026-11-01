@@ -12,6 +12,7 @@ app/                  Desktop application source
 docs/                 Usage, development, screenshots, historical notes
 scripts/              Checks, source build, guided setup, local maintenance
 setup/                First-run instructions and explicit model preparation
+install.ps1           Complete online bootstrap (Python, runtime, Ollama, models)
 tests/                Python and JavaScript regression checks
 ```
 
@@ -38,6 +39,13 @@ py -3.11 -m venv .venv
 Prepare Ollama, WebView2, and model files as described in the setup guide. The development copy uses its own `app/data/` and `app/logs/`. Place Kokoro files under `app/models/kokoro/` or set `ARTEMIS_KOKORO_DIR`. Close other Artemis instances before testing voice devices.
 
 Fresh settings start in Quiet mode. Model downloads, microphone capture, and audio output should remain explicit during testing.
+
+The root `install.ps1` is the complete online setup entry point. Dot-source it to
+load its functions without installing. `tests/test_bootstrap.ps1` checks its native
+boundaries without network access or system changes; `tests/test_model_setup.py`
+checks model integrity, cache reuse, explicit local Ollama routing, and recovery.
+`-CheckOnly` is read-only. Do not run full setup against a real user's existing
+folder as a test. A clean Windows computer is still required for end-to-end validation.
 
 ## Verification
 

@@ -26,7 +26,7 @@ def verify(installed_root=None):
             assert not name.endswith(('.sqlite3','.pyc','.log')),'Runtime file included'
             assert hashlib.sha256(package.read(name)).hexdigest()==digest,'Payload hash mismatch: '+name
             assert hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest,'Stale payload: '+name
-        required={'scripts/install-local.ps1','scripts/rollback-local.ps1','requirements.txt','README.md','app/Artemis.pyw',
+        required={'install.ps1','setup/prepare-models.py','scripts/install-local.ps1','scripts/rollback-local.ps1','requirements.txt','README.md','app/Artemis.pyw',
                   'scripts/install-windows.ps1','scripts/windows_setup.py','requirements-runtime.lock',
                   'setup/FIRST_RUN.md','setup/Modelfile','setup/check-setup.py','setup/download-whisper.py'}
         assert required.issubset(names),'Installation/rollback instructions or scripts missing'

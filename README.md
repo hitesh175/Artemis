@@ -132,8 +132,6 @@ irm https://raw.githubusercontent.com/hitesh175/Artemis/main/install.ps1 | iex
 
 After one download confirmation, setup prepares Python 3.11, WebView2, Ollama, the Artemis chat model, Whisper recognition, and Kokoro speech. It installs Artemis under `%LOCALAPPDATA%\Artemis`, creates Start menu and desktop shortcuts, then opens the app in Quiet mode. Existing compatible requirements and completed model downloads are reused. Completion time depends on the connection and hardware; a three-minute installation has not been established.
 
-**Validation:** automated setup and recovery checks pass. The complete online flow still needs testing on a clean second Windows computer.
-
 Rerun the same command after an interruption. Setup remembers the source revision for that destination, retries incomplete package/model preparation, and keeps user data. It refuses to overwrite unrelated installations and is not an updater. The existing developer installation is separate.
 
 The command downloads and runs this repository's [readable setup script](install.ps1). For a different location, text-only model preparation, preview checks, or setup without opening the app, see the [setup guide](setup/FIRST_RUN.md#complete-online-setup).

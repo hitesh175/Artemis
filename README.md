@@ -24,7 +24,6 @@ Artemis brings local language models and practical desktop tools into a single W
 
 The interface includes a full desktop view, a compact Mini mode, and Quiet mode for text-only use. Desktop actions go through defined application tools; an AI-generated reply cannot execute a shell command or silently launch an app.
 
-**Project status:** working prototype. The current app has passed regression checks, native Windows UI checks, real local-model chat checks, and silent voice-model loading. Clean-machine setup and live microphone use still need further validation.
 
 ## Features
 
@@ -131,8 +130,6 @@ irm https://raw.githubusercontent.com/hitesh175/Artemis/main/install.ps1 | iex
 ```
 
 After one download confirmation, setup prepares Python 3.11, WebView2, Ollama, the Artemis chat model, Whisper recognition, and Kokoro speech. It installs Artemis under `%LOCALAPPDATA%\Artemis`, creates Start menu and desktop shortcuts, then opens the app in Quiet mode. Existing compatible requirements and completed model downloads are reused. Completion time depends on the connection and hardware; a three-minute installation has not been established.
-
-**Validation:** automated setup and recovery checks pass. The complete online flow still needs testing on a clean second Windows computer.
 
 Rerun the same command after an interruption. Setup remembers the source revision for that destination, retries incomplete package/model preparation, and keeps user data. It refuses to overwrite unrelated installations and is not an updater. The existing developer installation is separate.
 
